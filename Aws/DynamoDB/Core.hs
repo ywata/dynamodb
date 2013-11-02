@@ -58,6 +58,7 @@ data DdbQuery
         { ddbqMethod  :: Method
         , ddbqRequest :: T.Text
         , ddbqQuery   :: HTTP.Query
+        , ddbqCommand :: T.Text
         , ddbqBody    :: Maybe Value
         } deriving (Show)
 
@@ -130,28 +131,32 @@ instance C.Exception DdbError
 
 data DdbMetadata
     = DdbMetadata 
-        { ddbMAmzId2    :: Maybe T.Text
-        , ddbMRequestId :: Maybe T.Text
+        {
+--          ddbMAmzId2    :: Maybe T.Text
+--        , ddbMRequestId :: Maybe T.Text
         }
     deriving (Show, Typeable)
 
 instance Monoid DdbMetadata where
-    mempty        = DdbMetadata Nothing Nothing
-    mappend m1 m2 = DdbMetadata (a1 `mplus` a2) (r1 `mplus` r2)
-      where
-        DdbMetadata a1 r1 = m1
-        DdbMetadata a2 r2 = m2
+  mempty = DdbMetadata
+  mappend m1 m2 = DdbMetadata
+--    mempty        = DdbMetadata Nothing Nothing
+--    mappend m1 m2 = DdbMetadata (a1 `mplus` a2) (r1 `mplus` r2)
+--      where
+--        DdbMetadata a1 r1 = m1
+--        DdbMetadata a2 r2 = m2
 
 instance Loggable DdbMetadata where
-    toLogText (DdbMetadata id2 rid) = 
-        "S3: request ID=" 
-                `mappend` fromMaybe "<none>" rid
-                `mappend` ", x-amz-id-2=" 
-                `mappend` fromMaybe "<none>" id2
+  toLogText d = "TestLog"
+--    toLogText (DdbMetadata id2 rid) = 
+--        "S3: request ID=" 
+--                `mappend` fromMaybe "<none>" rid
+--                `mappend` ", x-amz-id-2=" 
+--                `mappend` fromMaybe "<none>" id2
 
 
 ddbSignQuery :: DdbQuery -> DdbConfiguration qt -> SignatureData -> SignedQuery
-ddbSignQuery DdbQuery{..} DdbConfiguration{..} SignatureData{..} =
+ddbSignQuery dq@DdbQuery{..} DdbConfiguration{..} SignatureData{..} =
     SignedQuery
         { sqMethod        = ddbqMethod
         , sqProtocol      = ddbProtocol
@@ -201,11 +206,15 @@ ddbSignQuery DdbQuery{..} DdbConfiguration{..} SignatureData{..} =
 
     hdd = 
         [ (,) "Date" $ fmtTime iso8601BasicUtcDate signatureTime
+          , (,) "X-Amz-Target" $ BC.pack . T.unpack $  ddbqCommand
+          , (,) "Connection" "Keep-Alive"
+
         ]
     
     -- URI path
 
-    pth = BC.pack $ printf "/2012-09-25/%s" $ T.unpack ddbqRequest
+--    pth = BC.pack $ printf "/2012-09-25/%s" $ T.unpack ddbqRequest
+    pth = BC.pack $ printf "/"
 
     -- method, content type and body
     
@@ -230,8 +239,9 @@ ddbResponseConsumer :: IORef DdbMetadata -> HTTPResponseConsumer a ->
 ddbResponseConsumer mrf inr rsp = 
  do liftIO $ tellMetadataRef mrf
                 DdbMetadata 
-                    { ddbMAmzId2    = ai2
-                    , ddbMRequestId = rqi
+                    {
+--                      ddbMAmzId2    = ai2
+--                    , ddbMRequestId = rqi
                     }
     if HTTP.responseStatus rsp >= HTTP.status400
       then ddb_error_rc rsp     -- handle error

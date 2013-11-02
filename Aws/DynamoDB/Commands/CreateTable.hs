@@ -7,14 +7,13 @@ module Aws.DynamoDB.Commands.CreateTable
     ( CreateTable(..)
     , CreateTableResponse(..)
     , createTable
-    , defaultJSInput
-    , defaultJSOutput
     ) where
 
 import           Aws.Core
 import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
+import qualified Data.Text as T
 
 
 -- | A brief example createJob program
@@ -46,55 +45,80 @@ import           Data.Aeson
 
 data CreateTable
     = CreateTable
-        { cjInput      :: JSInput 
-        , cjOutput     :: JSOutput
-        , cjPipelineId :: PipelineId
+        { ctAttributeDefinitions    :: [AttributeDefinition]
+          , ctKeySchema             :: KeySchema
+          , ctLocalSecondaryIndexes :: [LocalSecondaryIndex]
+          , ctProvisionedThroughput :: ProvisionedThroughput
+          , ctTableName             :: T.Text
         }
     deriving (Show,Eq)
+
+instance ToJSON CreateTable where
+  toJSON (CreateTable a b c d e) =
+    object[
+      "AttributeDefinitions"    .= a
+      , "KeySchema"             .= toJSON b
+--      , "LocalSecondaryIndexes" .= toJSON c
+      , "ProvisionedThroughput" .= toJSON d
+      , "TableName"             .= e
+    ]
+
 
 data CreateTableResponse
     = CreateTableResponse
-        { cjrId         :: JobId
-        , cjrInput      :: JSInput 
-        , cjrOutput     :: JSOutputStatus
-        , cjrPipelineId :: PipelineId
-        }
+        { ctrTableDescription :: TableDescription}
     deriving (Show,Eq)
 
-
-createTable :: S3Object -> S3Object -> PresetId -> PipelineId -> CreateTable
-createTable inb oub pri pli = CreateTable cji cjo pli
-  where
-    cji = defaultJSInput  inb
-    cjo = defaultJSOutput oub pri
+createTable :: [AttributeDefinition] -> KeySchema ->  [LocalSecondaryIndex] -> ProvisionedThroughput -> T.Text -> CreateTable
+createTable  ad ks lsi pt tn = CreateTable ad ks lsi pt tn
 
 
-defaultJSInput :: S3Object -> JSInput
-defaultJSInput inb = JSInput inb FRauto Rauto ARauto ABauto Cauto
+data Tx = Tx T.Text
+instance ToJSON Tx where
+  toJSON (Tx s) = String $ s
 
-defaultJSOutput :: S3Object -> PresetId -> JSOutput
-defaultJSOutput oub pri = JSOutput oub "" ROTauto pri
+data Test = Test
+xxx = Test
+instance ToJSON Test where
+  toJSON a = object[
 
+    "AttributeDefinitions" .= [
+       object [
+       "AttributeName" .= String "ForumName",
+       "AttributeType" .= String "S"
+       ]]
+    ,
+    "TableName" .= String "Thread" ,
+    "KeySchema"  .= [object[
+                        "AttributeName" .= String "ForumName",
+                        "KeyType"       .= String "HASH"
+                        ]],
+    "ProvisionedThroughput" .= object [
+      "ReadCapacityUnits" .= Number 1,
+      "WriteCapacityUnits" .= Number 1
+      ]
+    ]
 
 instance SignQuery CreateTable where
 
     type ServiceConfiguration CreateTable = DdbConfiguration
 
-    signQuery CreateTable {..} = ddbSignQuery DdbQuery
+    signQuery ct@CreateTable {..} = ddbSignQuery DdbQuery
         { ddbqMethod  = Post
-        , ddbqRequest = "jobs"
+        , ddbqRequest = ""
         , ddbqQuery   = []
-        , ddbqBody    = Just $ toJSON $ JobSpec cjInput cjOutput cjPipelineId
+        , ddbqCommand = "DynamoDB_20120810.CreateTable"
+        , ddbqBody    = Just $ toJSON $ ct
         }
 
 instance ResponseConsumer CreateTable CreateTableResponse where
 
     type ResponseMetadata CreateTableResponse = DdbMetadata
 
-    responseConsumer _ mref = ddbResponseConsumer mref $ \rsp ->
-                                                    cnv <$> jsonConsumer rsp
-          where
-            cnv (JobSingle(JobSpecId a b c d)) = CreateTableResponse a b c d
+    responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
+      where
+        cnv (CreateTableResult tb@(TableDescription _ _ _ _ _ _ _ _ _)) = CreateTableResponse tb
+
 
 instance Transaction CreateTable CreateTableResponse
 
