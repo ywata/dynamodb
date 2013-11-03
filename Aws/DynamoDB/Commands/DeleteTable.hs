@@ -11,7 +11,9 @@ module Aws.DynamoDB.Commands.DeleteTable
 import           Aws.Core
 import           Aws.DynamoDB.Core
 import           Control.Applicative
+import           Control.Monad
 import           Data.Aeson
+
 import qualified Data.Text as T
 
 
@@ -28,9 +30,10 @@ instance ToJSON DeleteTable where
       "TableName" .= a
       ]
 
-
 data DeleteTableResponse
-    = DeleteTableResponse {}
+    = DeleteTableResponse {
+      dtrTableDescription::TableDescription
+        }
     deriving (Show,Eq)
 
 
@@ -51,9 +54,12 @@ instance SignQuery DeleteTable where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data DeleteTableResult = DeleteTableResult{}
+data DeleteTableResult = DeleteTableResult{
+  tableDescription :: TableDescription
+  }deriving(Show, Eq)
 instance FromJSON DeleteTableResult where
- parseJSON _ = return DeleteTableResult
+  parseJSON (Object v) = DeleteTableResult <$> v .: "TableDescription"
+  parseJSON _ = mzero
 
 instance ResponseConsumer DeleteTable DeleteTableResponse where
 
@@ -61,7 +67,7 @@ instance ResponseConsumer DeleteTable DeleteTableResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (DeleteTableResult {}) = DeleteTableResponse{}
+        cnv (DeleteTableResult a) = DeleteTableResponse a
 
 
 instance Transaction DeleteTable DeleteTableResponse

@@ -12,6 +12,7 @@ module Aws.DynamoDB.Commands.CreateTable
 import           Aws.Core
 import           Aws.DynamoDB.Core
 import           Control.Applicative
+import           Control.Monad
 import           Data.Aeson
 import qualified Data.Text as T
 
@@ -63,6 +64,13 @@ instance ToJSON CreateTable where
       , "TableName"             .= e
     ]
 
+data CreateTableResult = CreateTableResult{
+  tableDescription::TableDescription
+  }deriving(Show, Eq)
+instance FromJSON CreateTableResult where
+  parseJSON (Object v) =
+    CreateTableResult <$> v .: "TableDescription" 
+  parseJSON _ = mzero
 
 data CreateTableResponse
     = CreateTableResponse
@@ -117,7 +125,7 @@ instance ResponseConsumer CreateTable CreateTableResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (CreateTableResult tb@(TableDescription _ _ _ _ _ _ _ _ _)) = CreateTableResponse tb
+        cnv (CreateTableResult tb@(TableDescription _ _ _  _ _ _ _ _ _)) = CreateTableResponse tb
 
 
 instance Transaction CreateTable CreateTableResponse
