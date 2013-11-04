@@ -33,14 +33,14 @@ instance ToJSON ListTables where
 
 data ListTablesResponse
     = ListTablesResponse {
+      lastEvaluatedTableName::Maybe TableName
+      , tableNames::[TableName]
                          }
     deriving (Show,Eq)
 
 
 listTables :: TableName -> Int -> ListTables
 listTables a b= ListTables a b
-
-
 
 instance SignQuery ListTables where
 
@@ -56,8 +56,8 @@ instance SignQuery ListTables where
 
 data ListTablesResult =
   ListTablesResult{
-    lastEvaluatedTableName :: Maybe TableName
-    , tableNames :: [TableName]
+    ltrlastEvaluatedTableName :: Maybe TableName
+    , ltrTableNames :: [TableName]
                   }deriving(Show, Eq)
 instance FromJSON ListTablesResult where
  parseJSON (Object v) =
@@ -71,7 +71,8 @@ instance ResponseConsumer ListTables ListTablesResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (ListTablesResult a b) = ListTablesResponse{}
+        cnv (ListTablesResult a b) = ListTablesResponse a b
+
 
 
 instance Transaction ListTables ListTablesResponse
