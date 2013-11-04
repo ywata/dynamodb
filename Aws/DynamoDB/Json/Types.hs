@@ -12,6 +12,7 @@ module Aws.DynamoDB.Json.Types
       , AttributeDefinition(..)
       , Attributes(..)
       , AttributeName(..)
+      , AttributeType(..)
       , AttributeValue(..)
       , ConsumedCapacity(..)
       , ExclusiveTableName(..)
@@ -77,7 +78,7 @@ instance FromJSON (Assoc b) where
 --
 data AttributeDefinition = AttributeDefinition{
   attributeName :: T.Text, 
-  attributeType :: AttributeValue
+  attributeType :: AttributeType
   } deriving(Show, Eq)
 
 instance ToJSON AttributeDefinition where
@@ -102,18 +103,18 @@ instance QC.Arbitrary AttributeDefinition where
 
 -- AttributeValue contains the type of AttributeType
 -- AttributeType deals B, N S only.
-data AttributeValue = B | BS | N | NS | S | SS
+data AttributeValue = AV_B | AV_BS | AV_N | AV_NS | AV_S | AV_SS
                     deriving (Show, Eq, Ord, Bounded,Enum)
 
 attributeValue_t ::AttributeValue -> T.Text
 attributeValue_t av =
   case av of
-    B  -> "B"
-    BS -> "BS"
-    N  -> "N"
-    NS -> "NS"
-    S  -> "S"
-    SS -> "SS"
+    AV_B  -> "B"
+    AV_BS -> "BS"
+    AV_N  -> "N"
+    AV_NS -> "NS"
+    AV_S  -> "S"
+    AV_SS -> "SS"
 attributeValue_m :: Map.Map T.Text AttributeValue
 attributeValue_m = text_map attributeValue_t
 instance ToJSON AttributeValue where
@@ -122,6 +123,28 @@ instance FromJSON AttributeValue where
   parseJSON = json_str_map_p attributeValue_m
 instance QC.Arbitrary AttributeValue where
   arbitrary = QC.elements [minBound..maxBound]
+
+
+
+data AttributeType = AT_B | AT_BS | AT_N | AT_NS | AT_S | AT_SS
+                    deriving (Show, Eq, Ord, Bounded,Enum)
+
+attributeType_t ::AttributeType -> T.Text
+attributeType_t av =
+  case av of
+    AT_B  -> "B"
+    AT_N  -> "N"
+    AT_S  -> "S"
+
+attributeType_m :: Map.Map T.Text AttributeType
+attributeType_m = text_map attributeType_t
+instance ToJSON AttributeType where
+  toJSON = String . attributeType_t
+instance FromJSON AttributeType where
+  parseJSON = json_str_map_p attributeType_m
+instance QC.Arbitrary AttributeType where
+  arbitrary = QC.elements [minBound..maxBound]
+
 
 
 data ActionType = ADD | PUT | DELETE

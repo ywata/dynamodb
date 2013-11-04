@@ -22,7 +22,7 @@ cre = do
   
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
                                D.createTable
-                               [AttributeDefinition "ForumName" S, AttributeDefinition "Index" N ]
+                               [AttributeDefinition "ForumName" AT_S, AttributeDefinition "Index" AT_N ]
                                [KeySchemaElement "ForumName" HASH, KeySchemaElement "Index" RANGE]
                                []
                                (ProvisionedThroughput 1 1 Nothing Nothing Nothing) "Txx"
