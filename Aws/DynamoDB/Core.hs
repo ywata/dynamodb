@@ -269,7 +269,7 @@ ddb_error_rc rsp0 =
               Right ese -> 
                 DdbError
                     { ddbStatusCode   = HTTP.responseStatus rsp
-                    , ddbErrorMessage = _ESE ese
+                    , ddbErrorMessage = _DDB ese
                     }
 
     oops per msg =
@@ -277,8 +277,8 @@ ddb_error_rc rsp0 =
 
 jsonConsumer :: FromJSON a => HTTPResponseConsumer a
 jsonConsumer rsp0 =
- do rsp <- HTTP.lbsResponse rsp0
-    either (C.monadThrow . oops rsp) return $ eitherDecode $ HTTP.responseBody rsp 
+  do rsp <- HTTP.lbsResponse rsp0
+     either (C.monadThrow . oops rsp) return $ eitherDecode $ HTTP.responseBody rsp 
   where
     oops rsp dgc = 
         DdbError

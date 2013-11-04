@@ -12,9 +12,12 @@ module Aws.DynamoDB.Commands.PutItem
 import           Aws.Core
 import           Aws.DynamoDB.Core
 import           Control.Applicative
+import           Control.Monad
 import           Data.Aeson
+import qualified Data.Map as Map
+
 import qualified Data.Text as T
---import           Aws.DynamoDB.Json.Types
+import           Aws.DynamoDB.Json.Types
 
 data PutItem
     = PutItem
@@ -23,7 +26,7 @@ data PutItem
           , piItem ::Item
           , piReturnConsumedCapacity::ReturnConsumedCapacity
           , piReturnItemCollectionMetrics:: ReturnItemCollectionMetrics
-          , piReutrnValues :: T.Text
+          , piReutrnValues :: ReturnValues
           , piTableName :: TableName
         }
     deriving (Show, Eq)
@@ -39,16 +42,31 @@ instance ToJSON PutItem where
       , "TableName" .= f
       ]
 
-
-
 data PutItemResponse
     = PutItemResponse {}
     deriving (Show,Eq)
 
-putItem:: Expected -> Item -> ReturnConsumedCapacity -> ReturnItemCollectionMetrics -> T.Text -> TableName -> PutItem
+putItem:: Expected -> Item -> ReturnConsumedCapacity -> ReturnItemCollectionMetrics -> ReturnValues -> TableName -> PutItem
 putItem a b c d e f= PutItem a b c d e f
 
 
+data PutItemResult = PutItemResult{
+{-  pirAttributes::Maybe (Map.Map T.Text Value_),
+  pirConsumedCapacity :: Maybe ConsumedCapacity,
+  pirItemCollectionMetrics :: Maybe ItemCollectionMetrics
+-}
+                                  }deriving(Show, Eq)
+instance FromJSON PutItemResult where
+  parseJSON _ = return PutItemResult{}
+{-                   
+instance FromJSON PutItemResult where
+  parseJSON (Object v) =
+    PutItemResult <$>
+    v .:? "Attributes"             <*>
+    v .:? "ConsumedCapacity"       <*>
+    v .:? "ItemCollectionMetrics"    
+-}  
+              
 
 instance SignQuery PutItem where
 
