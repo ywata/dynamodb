@@ -15,6 +15,7 @@ module Aws.DynamoDB.Json.Types
       , AttributeType(..)
       , AttributeValue(..)
       , ConsumedCapacity(..)
+      , DateTime(..)
       , ExclusiveTableName(..)
       , Expected(..)
       , DdbServiceError(..)
@@ -37,6 +38,7 @@ module Aws.DynamoDB.Json.Types
       , ReturnValues(..)
       , TableDescription(..)
       , TableName(..)
+      , TableStatus(..)
       , Value_(..)
 --       
     ) where
@@ -126,7 +128,7 @@ instance QC.Arbitrary AttributeValue where
 
 
 
-data AttributeType = AT_B | AT_BS | AT_N | AT_NS | AT_S | AT_SS
+data AttributeType = AT_B | AT_N | AT_S 
                     deriving (Show, Eq, Ord, Bounded,Enum)
 
 attributeType_t ::AttributeType -> T.Text
@@ -178,6 +180,12 @@ data ConsumedCapacity = ConsumedCapacity{
   ccCacacityUnits :: Int,
   ccTableName     :: TableName
   }deriving(Show, Eq)
+instance FromJSON ConsumedCapacity where
+  parseJSON (Object v) = ConsumedCapacity <$>
+              v .: "CapacityUnits" <*>
+              v .: "TableName"
+  parseJSON _ = mzero
+
 newtype ConsistentRead = ConsistentRead Bool
   deriving(Show, Eq)
 instance ToJSON ConsistentRead where
@@ -245,7 +253,12 @@ data ItemCollectionMetrics = ItemCollectionMetrics{
   icmItemCollectionKey     :: Maybe ItemCollectionKey
   , icmSizeEstimateRangeGB :: Maybe [Double]
   }deriving(Show, Eq)
-  
+instance FromJSON ItemCollectionMetrics where
+  parseJSON (Object v) =
+    ItemCollectionMetrics <$>
+    v .:? "ItemCollectionKey" <*>
+    v .:? "SizeEstimateRangeGB"
+
 data KeysAndAttributes  
 data KeySchemaElement = KeySchemaElement{
   kseAttributeName :: T.Text
@@ -412,7 +425,7 @@ returnConsumedCapacity_t a =
   case a of
     TOTAL -> "TOTAL"
     NONE  -> "NONE"
-    
+
 returnConsumedCapacity_m :: Map.Map T.Text ReturnConsumedCapacity
 returnConsumedCapacity_m = text_map returnConsumedCapacity_t
 instance ToJSON ReturnConsumedCapacity where
@@ -575,7 +588,7 @@ instance ToJSON Value_ where
   toJSON (ValueS  a) = object[ "S"  .= a]
   toJSON (ValueSS a) = object[ "SS" .= a]
 instance FromJSON Value_ where
-  parseJSON = undefined
+  parseJSON a = mzero <|> mzero
 
 newtype DdbServiceError = DDB { _DDB :: T.Text }
     deriving (Show,IsString,Eq)

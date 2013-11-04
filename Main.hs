@@ -17,7 +17,7 @@ import           Data.Aeson
 import           Data.Aeson.Types
 
 --myCreateJob :: IO ()
-cre = do
+cre tbn = do
   cfg <- Aws.baseConfiguration
   
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
@@ -25,9 +25,25 @@ cre = do
                                [AttributeDefinition "ForumName" AT_S, AttributeDefinition "Index" AT_N ]
                                [KeySchemaElement "ForumName" HASH, KeySchemaElement "Index" RANGE]
                                []
-                               (ProvisionedThroughput 1 1 Nothing Nothing Nothing) "Txx"
+                               (ProvisionedThroughput 1 1 Nothing Nothing Nothing) tbn
   return rsp
+
+lt = do
+  cfg <- Aws.baseConfiguration
   
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
+                               D.listTables "Txx" 5
+  return rsp
+
+
+dsc = do
+  cfg <- Aws.baseConfiguration
+  
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
+                               D.describeTable "Txx"
+
+  return rsp
+
  
 put = do
   cfg <- Aws.baseConfiguration
@@ -49,7 +65,7 @@ put = do
 
   return rsp
 
-main = cre
+main = cre "a123"
 
 del = do
   cfg <- Aws.baseConfiguration  

@@ -30,14 +30,12 @@ instance ToJSON DescribeTable where
 
 
 data DescribeTableResponse
-    = DescribeTableResponse {}
+    = DescribeTableResponse {table::TableDescription}
     deriving (Show,Eq)
 
 
 describeTable :: TableName -> DescribeTable
 describeTable = DescribeTable 
-
-
 
 instance SignQuery DescribeTable where
 
@@ -51,9 +49,15 @@ instance SignQuery DescribeTable where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data DescribeTableResult = DescribeTableResult{}
+data DescribeTableResult =
+  DescribeTableResult{
+    dtrTable::TableDescription
+    }deriving(Show, Eq)
 instance FromJSON DescribeTableResult where
- parseJSON _ = return DescribeTableResult
+ parseJSON (Object v) =
+   DescribeTableResult <$>
+   v .: "Table"
+
 
 instance ResponseConsumer DescribeTable DescribeTableResponse where
 
@@ -61,7 +65,7 @@ instance ResponseConsumer DescribeTable DescribeTableResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (DescribeTableResult {}) = DescribeTableResponse{}
+        cnv (DescribeTableResult tbl) = DescribeTableResponse tbl
 
 
 instance Transaction DescribeTable DescribeTableResponse

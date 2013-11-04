@@ -51,21 +51,17 @@ putItem a b c d e f= PutItem a b c d e f
 
 
 data PutItemResult = PutItemResult{
-{-  pirAttributes::Maybe (Map.Map T.Text Value_),
+  pirAttributes::Maybe (Map.Map T.Text Value_),
   pirConsumedCapacity :: Maybe ConsumedCapacity,
   pirItemCollectionMetrics :: Maybe ItemCollectionMetrics
--}
-                                  }deriving(Show, Eq)
-instance FromJSON PutItemResult where
-  parseJSON _ = return PutItemResult{}
-{-                   
+  }deriving(Show, Eq)
 instance FromJSON PutItemResult where
   parseJSON (Object v) =
     PutItemResult <$>
     v .:? "Attributes"             <*>
     v .:? "ConsumedCapacity"       <*>
     v .:? "ItemCollectionMetrics"    
--}  
+
               
 
 instance SignQuery PutItem where

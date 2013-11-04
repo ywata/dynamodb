@@ -85,28 +85,6 @@ data Tx = Tx T.Text
 instance ToJSON Tx where
   toJSON (Tx s) = String $ s
 
-data Test = Test
-xxx = Test
-instance ToJSON Test where
-  toJSON a = object[
-
-    "AttributeDefinitions" .= [
-       object [
-       "AttributeName" .= String "ForumName",
-       "AttributeType" .= String "S"
-       ]]
-    ,
-    "TableName" .= String "Thread" ,
-    "KeySchema"  .= [object[
-                        "AttributeName" .= String "ForumName",
-                        "KeyType"       .= String "HASH"
-                        ]],
-    "ProvisionedThroughput" .= object [
-      "ReadCapacityUnits" .= Number 1,
-      "WriteCapacityUnits" .= Number 1
-      ]
-    ]
-
 instance SignQuery CreateTable where
 
     type ServiceConfiguration CreateTable = DdbConfiguration

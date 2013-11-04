@@ -18,22 +18,27 @@ import qualified Data.Text as T
 data ListTables
     = ListTables
         {
+          ltExclusivesStartTableName :: TableName
+          , ltLimit :: Int
         }
     deriving (Show, Eq)
 
 instance ToJSON ListTables where
-  toJSON (ListTables) =
+  toJSON (ListTables a b) =
     object[
+      "ExclusiveStartTableName" .= a
+      , "Limit"                 .= b
       ]
 
 
 data ListTablesResponse
-    = ListTablesResponse {}
+    = ListTablesResponse {
+                         }
     deriving (Show,Eq)
 
 
-listTables :: ListTables
-listTables= ListTables
+listTables :: TableName -> Int -> ListTables
+listTables a b= ListTables a b
 
 
 
@@ -49,9 +54,16 @@ instance SignQuery ListTables where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data ListTablesResult = ListTablesResult{}
+data ListTablesResult =
+  ListTablesResult{
+    lastEvaluatedTableName :: Maybe TableName
+    , tableNames :: [TableName]
+                  }deriving(Show, Eq)
 instance FromJSON ListTablesResult where
- parseJSON _ = return ListTablesResult
+ parseJSON (Object v) =
+   ListTablesResult <$>
+   v .:? "LastEvaluatedTableName" <*>
+   v .: "TableNames"
 
 instance ResponseConsumer ListTables ListTablesResponse where
 
@@ -59,7 +71,7 @@ instance ResponseConsumer ListTables ListTablesResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (ListTablesResult {}) = ListTablesResponse{}
+        cnv (ListTablesResult a b) = ListTablesResponse{}
 
 
 instance Transaction ListTables ListTablesResponse
