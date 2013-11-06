@@ -12,28 +12,42 @@ import           Aws.Core
 import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
+import qualified Data.Map  as Map
 import qualified Data.Text as T
 
 
 data GetItem
     = GetItem
         {
+          giAttributesToGet  :: [T.Text]
+          , giConsistentRead :: Maybe Bool
+          , giKey            :: Map.Map T.Text Value_
+          , giReturnConsumedCapacity :: Maybe Bool
+          , giTableName :: TableName
         }
     deriving (Show, Eq)
 
 instance ToJSON GetItem where
-  toJSON (GetItem) =
+  toJSON (GetItem a b c d e) =
     object[
+      "AttributesToGet"  .= a
+      , "ConsistentRead" .= b
+      , "Key"            .= c
+      , "ReturnConsumedCapacity" .= d
+      , "TableName"              .= e
       ]
 
+data GetItemResult = GetItemResult{}
+instance FromJSON GetItemResult where
+ parseJSON _ = return GetItemResult
 
 data GetItemResponse
     = GetItemResponse {}
     deriving (Show,Eq)
 
 
-getItem :: GetItem
-getItem= GetItem
+--getItem :: GetItem
+getItem a b c d e = GetItem a b c d e 
 
 
 

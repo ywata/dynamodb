@@ -44,6 +44,12 @@ dsc = do
 
   return rsp
 
+get = do
+  cfg <- Aws.baseConfiguration
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
+                               D.getItem (["abcdefg"]) (Just True) (Map.fromList
+                                         [("ForumName", ValueS "abcdef"), ("Index", ValueN 2)])  (Just True) "Txx"
+  return rsp
  
 put = do
   cfg <- Aws.baseConfiguration
