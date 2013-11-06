@@ -15,11 +15,11 @@ module Aws.DynamoDB.Json.Types
       , AttributeType(..)
       , AttributeValue(..)
       , ConsumedCapacity(..)
+      , ConsistentRead(..)
       , DateTime(..)
       , ExclusiveTableName(..)
       , Expected(..)
       , DdbServiceError(..)
-      , GetItemResult(..)        
       , ItemCollectionMetrics(..)
       , IndexName(..)
       , Item(..)
@@ -31,6 +31,10 @@ module Aws.DynamoDB.Json.Types
       , Limit(..)
         
       , LocalSecondaryIndex(..)
+      , NonKeyAttribute(..)
+      , Operator(..)
+      , Projection(..)
+      , ProjectionType(..)
       , ProvisionedThroughput(..)
 
       , ReturnConsumedCapacity(..)
@@ -100,7 +104,7 @@ instance QC.Arbitrary AttributeDefinition where
   
 
 --
--- | AttributeName  
+-- | AttributeValue
 --
 
 -- AttributeValue contains the type of AttributeType
@@ -127,7 +131,9 @@ instance QC.Arbitrary AttributeValue where
   arbitrary = QC.elements [minBound..maxBound]
 
 
-
+--
+-- | AttributeType
+--
 data AttributeType = AT_B | AT_N | AT_S 
                     deriving (Show, Eq, Ord, Bounded,Enum)
 
@@ -148,7 +154,9 @@ instance QC.Arbitrary AttributeType where
   arbitrary = QC.elements [minBound..maxBound]
 
 
-
+--
+-- | ActionType
+--
 data ActionType = ADD | PUT | DELETE
                               deriving(Show, Eq, Ord, Bounded, Enum)
 actionType_t :: ActionType -> T.Text
@@ -170,30 +178,53 @@ instance QC.Arbitrary ActionType  where
 data Attributes = Attributes{
                             }
 
+--
+-- | AttributeValueUpdate -- not tested
+--
 data AttributeValueUpdate = Action{actionType:: ActionType}|
                             Value AttributeValue
 instance ToJSON AttributeValueUpdate where
   toJSON Action{actionType =a}   = object ["actionType" .= a]
   toJSON v@(Value av) = toJSON av
 
+--
+-- | ConsumedCapacity
+--
 data ConsumedCapacity = ConsumedCapacity{
   ccCacacityUnits :: Int,
   ccTableName     :: TableName
   }deriving(Show, Eq)
+instance ToJSON ConsumedCapacity where
+  toJSON ConsumedCapacity{ccCacacityUnits = u, ccTableName =t} =
+    object[ "CapacityUnits" .= u, "TableName" .= t]
 instance FromJSON ConsumedCapacity where
   parseJSON (Object v) = ConsumedCapacity <$>
               v .: "CapacityUnits" <*>
               v .: "TableName"
   parseJSON _ = mzero
+instance QC.Arbitrary ConsumedCapacity where
+  arbitrary = ConsumedCapacity <$> QC.arbitrary <*> QC.arbitrary
 
+--
+-- | ConsumedCapacity
+--
 newtype ConsistentRead = ConsistentRead Bool
   deriving(Show, Eq)
 instance ToJSON ConsistentRead where
   toJSON (ConsistentRead a) = object["ConsistentRead" .= a]
+instance FromJSON ConsistentRead where
+  parseJSON (Object v) = ConsistentRead <$>
+                         v .: "ConsistentRead"
+instance QC.Arbitrary ConsistentRead where
+  arbitrary = ConsistentRead <$> QC.arbitrary
 
 
 --data Condition = Condition{}
-                          
+
+
+--
+-- | Operator
+--
 data Operator
   = EQ_ |NE_| LE_ | LT_ | GE_ | GT_ | BEGIN_WITH_ | BETWEEN_ | NOT_NULL_ | NULL_ |CONTAINS_| NOT_CONTAINS_| IN_
   deriving(Show, Eq, Ord, Bounded, Enum)
@@ -202,14 +233,15 @@ operator_t op =
   case op of
     EQ_ -> "EQ"
     NE_ -> "NE"
+    LT_ -> "LT"    
     LE_ -> "LE"
     GE_ -> "GE"
     GT_ -> "GT"
-    BEGIN_WITH_ -> "BEGIN_WITH"
-    BETWEEN_    -> "BETWEEN"
-    NOT_NULL_   -> "NOT_NULL"
-    NULL_       -> "NULL"
-    CONTAINS_   -> "CONTAINS"
+    BEGIN_WITH_   -> "BEGIN_WITH"
+    BETWEEN_      -> "BETWEEN"
+    NOT_NULL_     -> "NOT_NULL"
+    NULL_         -> "NULL"
+    CONTAINS_     -> "CONTAINS"
     NOT_CONTAINS_ -> "NOT_CONTAINS"
     IN_           -> "IN"
 operator_m :: Map.Map T.Text Operator
@@ -222,32 +254,12 @@ instance FromJSON Operator where
 instance QC.Arbitrary Operator where
   arbitrary = QC.elements [minBound..maxBound]
 
-data GetItemResult = GetItemResult{}
-instance FromJSON GetItemResult where
- parseJSON _ = return GetItemResult
-
-
-
---newtype DateTime = DateTime{_DateTime :: Int}
---                 deriving(Show, Eq)
---instance FromJSON DateTime where
---  parseJSON = withText "DateTime" $ return . DateTime 
-
-
 
 data ExpectedAttributeValue
 
-
-{-
-newtype IndexName = IndexName{_IndexName :: T.Text}
-                  deriving(Show, Eq)
-instance FromJSON IndexName where
-  parseJSON = withText "IndexName" $ return . IndexName
-instance ToJSON IndexName where
-  toJSON = String . _IndexName
-instance QC.Arbitrary IndexName where
-  arbitrary = IndexName . T.pack <$> QC.arbitrary
--}  
+--
+-- | ItemCollectionKey not tested
+--
 type ItemCollectionKey = Map.Map T.Text AttributeValue
 data ItemCollectionMetrics = ItemCollectionMetrics{
   icmItemCollectionKey     :: Maybe ItemCollectionKey
@@ -258,8 +270,16 @@ instance FromJSON ItemCollectionMetrics where
     ItemCollectionMetrics <$>
     v .:? "ItemCollectionKey" <*>
     v .:? "SizeEstimateRangeGB"
+--instance QC.Arbitrary ItemCollectionMetrics where
+--  arbitrary = ItemCollectionMetrics <$> QC.arbitrary <*> QC.arbitrary
 
-data KeysAndAttributes  
+--
+-- | KeysAndAttributes
+--
+data KeysAndAttributes
+--
+-- | KeySchemaElement
+--
 data KeySchemaElement = KeySchemaElement{
   kseAttributeName :: T.Text
   , kseKeyType     :: KeyType
@@ -278,6 +298,9 @@ instance QC.Arbitrary KeySchemaElement where
               QC.arbitrary <*>
               QC.arbitrary
 
+--  
+-- | KeyType
+--
 data KeyType = HASH | RANGE
                       deriving(Show, Eq, Ord, Bounded, Enum)
 keyType_t:: KeyType -> T.Text
@@ -295,6 +318,9 @@ instance QC.Arbitrary KeyType where
   arbitrary = QC.elements [minBound..maxBound]
 
 
+--
+-- | Limit  
+--
 newtype Limit = Limit{_Limit::Int}
              deriving(Show, Eq)
 instance ToJSON Limit where
@@ -305,6 +331,9 @@ instance FromJSON Limit where
 instance QC.Arbitrary Limit where
   arbitrary = Limit <$> QC.arbitrarySizedIntegral
 
+--
+-- | LocalSecondaryIndex -- test failed
+--
 data LocalSecondaryIndex = LocalSecondaryIndex{
   lsiIndexName:: IndexName
   , lsiKeySchema :: KeySchema
@@ -330,7 +359,9 @@ instance QC.Arbitrary LocalSecondaryIndex where
 
 
 data LocalSecondaryIndexDescription
-
+--
+-- | NonKeyAttribute
+--
 data NonKeyAttribute = NonKeyAttribute{type_::[T.Text]}
                        deriving(Show, Eq)
 instance ToJSON NonKeyAttribute where
@@ -342,7 +373,9 @@ instance FromJSON NonKeyAttribute where
 instance QC.Arbitrary NonKeyAttribute where
   arbitrary = NonKeyAttribute <$> QC.arbitrary
 
-
+--
+-- | Projection
+--
 data Projection = Projection{
   pNonKeyAttribute::[NonKeyAttribute]
   , pProjectionType::[ProjectionType]
@@ -359,19 +392,20 @@ instance FromJSON Projection where
     v .: "ProjectionType"
   parseJSON _ = mzero    
 instance QC.Arbitrary Projection where
-  arbitrary = Projection <$>
+  arbitrary = Projection   <$>
               QC.arbitrary <*>
               QC.arbitrary
-
-
+--
+-- | ProjectionType failed
+--
 data ProjectionType = ALL_ | KEYS_ONLY_ | INCLUDE_
                     deriving(Show, Eq, Ord, Bounded, Enum)
 projectionType_t:: ProjectionType -> T.Text
 projectionType_t pt =
   case pt of
-    ALL_ -> "ALL"
+    ALL_       -> "ALL"
     KEYS_ONLY_ -> "KEYS_ONLY"
-    INCLUDE_ -> "INCLUDE"
+    INCLUDE_   -> "INCLUDE"
 projectionType_m :: Map.Map T.Text ProjectionType
 projectionType_m = text_map projectionType_t
 instance ToJSON ProjectionType where
@@ -417,7 +451,9 @@ instance QC.Arbitrary ProvisionedThroughput where
 
 
 data ProvisionedThroughputDescription
-
+--
+-- | ReturnConsumedCapacity
+-- 
 data ReturnConsumedCapacity = TOTAL | NONE
                             deriving(Show, Eq, Ord, Bounded, Enum)
 returnConsumedCapacity_t:: ReturnConsumedCapacity -> T.Text
@@ -435,6 +471,10 @@ instance FromJSON ReturnConsumedCapacity where
 instance QC.Arbitrary ReturnConsumedCapacity where
   arbitrary = QC.elements [minBound..maxBound]
 
+
+--
+-- | ReturnItemCollectionMetrics
+--  
 data ReturnItemCollectionMetrics = SIZE | NONE_
                             deriving(Show, Eq, Ord, Bounded, Enum)
 returnItemCollectionMetrics_t:: ReturnItemCollectionMetrics -> T.Text
@@ -453,16 +493,19 @@ instance FromJSON ReturnItemCollectionMetrics where
 instance QC.Arbitrary ReturnItemCollectionMetrics where
   arbitrary = QC.elements [minBound..maxBound]
 
+--
+-- | ReturnValues
+--
 data ReturnValues = RV_NONE | ALL_OLD | UPDATED_OLD | ALL_NEW | UPDATED_NEW
                   deriving(Show, Eq, Ord, Bounded, Enum)
 
 returnValues_t::ReturnValues -> T.Text
 returnValues_t a =
   case a of
-    RV_NONE -> "NONE"
-    ALL_OLD -> "ALL_OLD"
+    RV_NONE     -> "NONE"
+    ALL_OLD     -> "ALL_OLD"
     UPDATED_OLD -> "UPDATED_OLD"
-    ALL_NEW -> "ALL_NEW"
+    ALL_NEW     -> "ALL_NEW"
     UPDATED_NEW -> "UPDATED_NEW" 
 returnValues_m :: Map.Map T.Text ReturnValues
 returnValues_m = text_map returnValues_t
@@ -474,6 +517,9 @@ instance QC.Arbitrary ReturnValues where
   arbitrary = QC.elements [minBound..maxBound]
 
 data ScanResult
+--
+-- | TableDescription failed 'cause of Double
+--  
 data TableDescription = TableDescription{
   tdAttributeDefinitions:: [AttributeDefinition]
   , tdCreationDateTime   :: DateTime 
@@ -505,8 +551,8 @@ instance FromJSON TableDescription where
     v .: "CreationDateTime"        <*> 
     v .: "ItemCount"               <*>
     v .: "KeySchema"               <*> 
-    v .:? "LocalSecondaryIndexes"   <*>
-    v .: "ProvisionedThroughput"    <*>
+    v .:? "LocalSecondaryIndexes"  <*>
+    v .: "ProvisionedThroughput"   <*>
     v .: "TableName"               <*>
     v .: "TableSizeBytes"          <*>
     v .: "TableStatus" 
@@ -516,15 +562,16 @@ instance QC.Arbitrary TableDescription where
   arbitrary = TableDescription <$>
               QC.arbitrary <*>
               QC.arbitrary <*>
-              QC.arbitrary  <*>
+              QC.arbitrary <*>
               QC.arbitrary <*> 
               QC.arbitrary <*>
               QC.arbitrary <*> 
               QC.arbitrary <*>
               QC.arbitrary <*>
               QC.arbitrary 
-
-
+--
+-- | TableStatus
+--
 data TableStatus = ACTIVE | CREATING
                             deriving(Show, Eq, Ord, Bounded, Enum)
 tableStatus_t :: TableStatus -> T.Text 
@@ -541,7 +588,9 @@ instance FromJSON TableStatus where
 instance QC.Arbitrary TableStatus where
   arbitrary = QC.elements [minBound..maxBound]
 
-
+--
+-- | Item not tested
+--
 data Item = Item{
   iItem :: Map.Map T.Text Value_
   }deriving(Show, Eq)
@@ -589,7 +638,23 @@ instance ToJSON Value_ where
   toJSON (ValueSS a) = object[ "SS" .= a]
 instance FromJSON Value_ where
   parseJSON a = mzero <|> mzero
+instance QC.Arbitrary Value_ where
+  arbitrary = QC.oneof [liftM ValueB    QC.arbitrary
+                        , liftM ValueBS QC.arbitrary
+                        , liftM ValueN  QC.arbitrary
+                        , liftM ValueNS QC.arbitrary
+                        , liftM ValueS  QC.arbitrary
+                        , liftM ValueSS QC.arbitrary]
+  shrink(ValueB x)  = [ValueB  x' | x' <- QC.shrink x]
+  shrink(ValueBS x) = [ValueBS x' | x' <- QC.shrink x]
+  shrink(ValueN x)  = [ValueN  x' | x' <- QC.shrink x]
+  shrink(ValueNS x) = [ValueNS x' | x' <- QC.shrink x]
+  shrink(ValueS x)  = [ValueS  x' | x' <- QC.shrink x]
+  shrink(ValueSS x) = [ValueSS x' | x' <- QC.shrink x]  
 
+--------------
+--------- Code below are derived from aws-elastictranscoding
+-------------
 newtype DdbServiceError = DDB { _DDB :: T.Text }
     deriving (Show,IsString,Eq)
 
