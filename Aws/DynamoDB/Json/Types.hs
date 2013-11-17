@@ -68,6 +68,7 @@ import           Data.String
 --import           ToolShed.Test.QuickCheck.Arbitrary.Map
 
 import qualified Data.Map.Strict                as Map
+import           Data.Attoparsec.Number         (Number(..))
 import           Data.Aeson                     hiding (Value)
 import qualified Data.Aeson.Types               as A 
 import qualified Data.Text                      as T
@@ -79,20 +80,43 @@ type TableName = T.Text
 --type Key       = T.Text
 --type KeyValue  = (Key, Value_)
 type NonKeyAttribute = T.Text
-type DateTime = Int
 type IndexName = T.Text
 type KeySchema = [KeySchemaElement]
 data Assoc b    = Assoc T.Text b
 type ItemCollectionKey = Map.Map T.Text AttributeValue
---type AssocList a b = [Assoc a b]
+
+
+type DateTime = DDouble
+
+newtype DDouble = DDouble Double
+                   deriving(Show)
+instance ToJSON DDouble where
+  toJSON (DDouble a) = Number (D a)
+instance FromJSON DDouble where
+  parseJSON n@(Number (D d)) = return $ DDouble d
+  parseJSON n@(Number (I d)) = return $ DDouble (fromIntegral d)
+  parseJSON _          = mzero
+instance QC.Arbitrary DDouble where
+  arbitrary = DDouble <$> QC.arbitrary
+
+epsilon = 0.0001
+instance Eq DDouble where
+  (DDouble a) == (DDouble b) = cmpDouble a b
+    where
+      -- a bit strange but easy solution
+      cmpDouble :: Double -> Double -> Bool
+      cmpDouble a b
+        | abs a < epsilon && abs b < epsilon  = True
+        | abs a < epsilon && abs b >= epsilon = False
+        | abs a >= epsilon && abs b < epsilon = False
+        | abs (a - b) / abs b < epsilon       = True
+        | otherwise                           = False
+
+
+
 
 instance QC.Arbitrary T.Text where
   arbitrary = T.pack <$> QC.arbitrary
-
---instance (ToJSON b) => ToJSON (Assoc b) where
---  toJSON (Assoc a b) = object [ a .= toJSON b]
---instance FromJSON (Assoc b) where
---  parseJSON _ = mzero
 
 
 --
@@ -328,7 +352,7 @@ instance QC.Arbitrary ExpectedAttributeValue where
 --
 data ItemCollectionMetrics = ItemCollectionMetrics{
   icmItemCollectionKey     :: Maybe ItemCollectionKey
-  , icmSizeEstimateRangeGB :: Maybe [Double]
+  , icmSizeEstimateRangeGB :: Maybe [DDouble]
   }deriving(Show, Eq)
 instance ToJSON  ItemCollectionMetrics where
   toJSON (ItemCollectionMetrics a b) = object ["ItemCollectionKey" .= a, "SizeEstimateRangeGB".=b]

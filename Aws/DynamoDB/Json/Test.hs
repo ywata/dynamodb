@@ -44,18 +44,19 @@ simple_tests =
     [
 
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue           )
-      , ae (mk_aet "LocalSecondaryIndexDescription"     :: AETest LocalSecondaryIndexDescription        )      
-      , ae (mk_aet "Item"     :: AETest Item        )         
---      , ae (mk_aet "ItemCollectionKey"              :: AETest ItemCollectionKey      ) 
---      , ae (mk_aet "Condition"                          :: AETest Condition           )
-        {-
+
+--      , ae (mk_aet "Item"     :: AETest Item        )
+
+
 
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate     )
       , ae (mk_aet "ActionType"                         :: AETest ActionType               )
       , ae (mk_aet "AttributeDefinition"                :: AETest AttributeDefinition      )
       , ae (mk_aet "AttributeName"                      :: AETest AttributeName            )
+      , ae (mk_aet "Condition"                          :: AETest Condition           )        
       , ae (mk_aet "ConsistentRead"                     :: AETest ConsistentRead           )
       , ae (mk_aet "ConsumedCapacity"                   :: AETest ConsumedCapacity         )
+      , ae (mk_aet "DateTime"     :: AETest DateTime        )        
       , ae (mk_aet "ExpectedAttributeValue"             :: AETest ExpectedAttributeValue)
       , ae (mk_aet "IndexName"                          :: AETest IndexName                )
 
@@ -66,6 +67,7 @@ simple_tests =
       , ae (mk_aet "KeySchemeElement"                   :: AETest KeySchemaElement           )
       , ae (mk_aet "Limit"                              :: AETest Limit                      )
       , ae (mk_aet "LocalSecondaryIndex"                :: AETest LocalSecondaryIndex        )
+      , ae (mk_aet "LocalSecondaryIndexDescription"     :: AETest LocalSecondaryIndexDescription        )      
       , ae (mk_aet "NonKeyAttribute"                    :: AETest NonKeyAttribute            )
       , ae (mk_aet "Operator"                           :: AETest ComparisonOperator         )
       , ae (mk_aet "Projection"                         :: AETest Projection                 )
@@ -79,7 +81,7 @@ simple_tests =
       , ae (mk_aet "TableStatus"                        :: AETest TableStatus                )                        
       , ae (mk_aet "TableDescription"                   :: AETest TableDescription) 
       , ae (mk_aet "Value"                                :: AETest Value)
--}
+
     ]
   where
     ae (AET st) = st
