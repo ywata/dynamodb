@@ -16,8 +16,11 @@ import qualified Aws.DynamoDB as D
 import Network.HTTP.Conduit
 import           Data.Aeson
 import           Data.Aeson.Types
-{-
---myCreateJob :: IO ()
+
+my_ddb_cfg :: DdbConfiguration NormalQuery
+my_ddb_cfg  = D.ddbConfiguration HTTP D.ddbEndpointLocal
+
+
 cre :: String -> IO CreateTableResponse
 cre tbn = do
   cfg <- Aws.baseConfiguration
@@ -26,9 +29,9 @@ cre tbn = do
                                D.createTable
                                [AttributeDefinition "ForumName" AT_S, AttributeDefinition "Index" AT_N ]
                                [KeySchemaElement "ForumName" HASH, KeySchemaElement "Index" RANGE]
-                               (Just (ProvisionedThroughput 1 1)) (T.pack tbn)
+                               (ProvisionedThroughput 1 1) (T.pack tbn) Nothing
   return rsp
-
+{-
 lt = do
   cfg <- Aws.baseConfiguration
   
@@ -94,10 +97,9 @@ del tab = do
 --my_ddb_cfg :: DdbConfiguration NormalQuery
 --my_ddb_cfg = ddbLocalConfiguration HTTPS ddbEndpointEu
 
-my_ddb_cfg :: DdbConfiguration NormalQuery
-my_ddb_cfg  = D.ddbConfiguration HTTP D.ddbEndpointLocal
               
 
 
 a = "{\"TableDescription\":{\"AttributeDefinitions\":[{\"AttributeName\":\"Index\",\"AttributeType\":\"N\"},{\"AttributeName\":\"ForumName\",\"AttributeType\":\"S\"}],\"TableName\":\"Txx\",\"KeySchema\":[{\"AttributeName\":\"ForumName\",\"KeyType\":\"HASH\"},{\"AttributeName\":\"Index\",\"KeyType\":\"RANGE\"}],\"TableStatus\":\"ACTIVE\",\"CreationDateTime\":1383482892.691,\"ProvisionedThroughput\":{\"NumberOfDecreasesToday\":0,\"ReadCapacityUnits\":1,\"WriteCapacityUnits\":1},\"TableSizeBytes\":0,\"ItemCount\":0}}"
+
 -}

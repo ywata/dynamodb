@@ -32,10 +32,11 @@ instance ToJSON CreateTable where
   toJSON (CreateTable a b c d e) =
     object[
       "AttributeDefinitions"    .= a
-      , "KeySchema"             .= toJSON b
---      , "LocalSecondaryIndexes" .= toJSON c
-      , "ProvisionedThroughput" .= toJSON d
-      , "TableName"             .= e
+      , "KeySchema"             .= b
+      , "ProvisionedThroughput" .= c
+      , "TableName"             .= d
+      , "LocalSecondaryIndexes" .= e
+        
     ]
 
 data CreateTableResult = CreateTableResult{
@@ -55,15 +56,11 @@ data CreateTableResponse
 createTable :: [AttributeDefinition]
                -> KeySchema
                -> ProvisionedThroughput
-               -> T.Text
+               -> TableName
                ->  Maybe [LocalSecondaryIndex]
                -> CreateTable
-createTable  ad ks lsi pt tn = CreateTable ad ks lsi pt tn
+createTable  a b c d e = CreateTable a b c d e
 
-
-data Tx = Tx T.Text
-instance ToJSON Tx where
-  toJSON (Tx s) = String $ s
 
 instance SignQuery CreateTable where
 
@@ -87,7 +84,6 @@ instance ResponseConsumer CreateTable CreateTableResponse where
 
 
 instance Transaction CreateTable CreateTableResponse
-
 instance AsMemoryResponse CreateTableResponse where
 
     type MemoryResponse CreateTableResponse = CreateTableResponse
