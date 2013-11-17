@@ -22,21 +22,18 @@ tests = map TS.impure simple_tests
 -}
 
 -- | Something to run in ghci:
-testAll :: IO ()
-testAll = mapM_ part simple_tests
+test :: IO ()
+test = testBase False
+testAll = test
+testAllVerbose :: IO ()
+testAllVerbose = testBase True
+testBase:: Bool -> IO ()
+testBase b = mapM_ part simple_tests
       where
         part st = 
              do putStr $ printf "%-35s: " $ nameST st
-                testST st False
+                testST st b
 
-
--- | Verbose tests from ghci:
-testAllVerbose :: IO ()
-testAllVerbose = mapM_ part simple_tests
-      where
-        part st = 
-             do putStr $ printf "\n%s:\n" $ nameST st
-                testST st True
 
 
 simple_tests :: [SimpleTest]
