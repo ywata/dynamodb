@@ -59,7 +59,7 @@ putItem a b c d e f= PutItem a b c d e f
 
 
 data PutItemResult = PutItemResult{
-  pirAttributes::Maybe Key
+  pirAttributes::Maybe Keys
   , pirConsumedCapacity :: Maybe ConsumedCapacity
   , pirItemCollectionMetrics :: Maybe ItemCollectionMetrics
   }deriving(Show, Eq)

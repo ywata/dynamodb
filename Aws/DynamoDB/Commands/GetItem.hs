@@ -19,7 +19,7 @@ import qualified Data.Text as T
 data GetItem
     = GetItem
         {
-          giKey                :: Key              -- Yes
+          giKey                :: Keys              -- Yes
           , giTableName        :: TableName        -- Yes          
           , giAttributesToGet  :: Maybe [T.Text]   -- No
           , giConsistentRead   :: Maybe Bool       -- No
