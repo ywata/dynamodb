@@ -42,7 +42,7 @@ lt = do
   cfg <- Aws.baseConfiguration
   
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
-                               D.listTables (Just "Txx")  (Just 5)
+                               D.listTables Nothing  (Just 5)
   return rsp
 
 {-
