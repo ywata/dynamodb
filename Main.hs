@@ -6,6 +6,7 @@ import Aws
 import Aws.DynamoDB
 import qualified Data.ByteString.Lazy as LBS
 
+import qualified Data.Text                      as T
 import           Data.String
 import qualified Data.Map                       as Map
 --import           Data.Aeson
@@ -17,6 +18,7 @@ import           Data.Aeson
 import           Data.Aeson.Types
 
 --myCreateJob :: IO ()
+cre :: String -> IO CreateTableResponse
 cre tbn = do
   cfg <- Aws.baseConfiguration
   
@@ -24,15 +26,15 @@ cre tbn = do
                                D.createTable
                                [AttributeDefinition "ForumName" AT_S, AttributeDefinition "Index" AT_N ]
                                [KeySchemaElement "ForumName" HASH, KeySchemaElement "Index" RANGE]
-                               []
-                               (ProvisionedThroughput 1 1 Nothing Nothing Nothing) tbn
+                               Nothing
+                               (ProvisionedThroughput 1 1 Nothing Nothing Nothing) (T.pack tbn)
   return rsp
 
 lt = do
   cfg <- Aws.baseConfiguration
   
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
-                               D.listTables "Txx" 5
+                               D.listTables (Just "Txx")  (Just 5)
   return rsp
 
 
@@ -47,22 +49,31 @@ dsc = do
 get = do
   cfg <- Aws.baseConfiguration
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
-                               D.getItem (["abcdefg"]) (Just True) (Map.fromList
-                                         [("ForumName", ValueS "abcdef"), ("Index", ValueN 2)])  (Just True) "Txx"
+                               D.getItem (Just ["abcdefg"]) (Just True)
+                                        ( Key $ Map.fromList
+                                         [("ForumName"::T.Text, ValueS "abcdef"), ("Index", ValueN 2)])  (Just True) "Txx"
   return rsp
  
 put = do
   cfg <- Aws.baseConfiguration
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
                                D.putItem
-                               (Expected . Map.fromList $ [])
+                               (Just . Expected . Map.fromList $ [])
                                (Item . Map.fromList $ [("ForumName", ValueS "abcdefg"), ("Index", ValueN 1)])
 --                               (Item Map.empty)
-                               TOTAL
-                               NONE_
-                               ALL_OLD
+                               (Just TOTAL)
+                               (Just NONE_)
+                               (Just ALL_OLD)
                                "Txx"
   return rsp
+{-scan = do
+  cfg <- Aws.baseConfiguration
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
+                               D.scan
+                               ""
+  return rsp
+-}
+
 {-  rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
                                D.listTables -}
 {-  rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
@@ -73,10 +84,11 @@ put = do
 
 main = cre "a123"
 
-del = do
+del::String -> IO DeleteTableResponse
+del tab = do
   cfg <- Aws.baseConfiguration  
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
-                               D.deleteTable ("Txx")
+                               D.deleteTable (T.pack tab)
   return rsp
 
 

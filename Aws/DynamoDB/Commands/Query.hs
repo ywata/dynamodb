@@ -18,11 +18,21 @@ import qualified Data.Text as T
 data Query
     = Query
         {
+          qTableName                :: TableName
+          , qAttributeToGet         :: Maybe AttributeToGet
+          , qConsistentRead         :: Maybe ConsistentRead
+          , qExclusiveStartKey      :: Maybe ExclusiveStartKey
+          , qIndexName              :: Maybe IndexName
+          , qKeyConditions          :: Maybe KeyConditions
+          , qLimit                  :: Maybe Limit
+          , qReturnConsumedCapacity :: Maybe ReturnConsumedCapacity
+          , qScanIndexForward       :: Maybe ScanIndexForward
+          , qSelect                 :: Maybe Select
         }
     deriving (Show, Eq)
 
 instance ToJSON Query where
-  toJSON (Query) =
+  toJSON (Query a b c d e f g h i j) =
     object[
       ]
 
@@ -32,8 +42,19 @@ data QueryResponse
     deriving (Show,Eq)
 
 
-query :: Query
-query= Query
+--query :: Query
+query :: TableName
+      -> Maybe AttributeToGet
+      -> Maybe ConsistentRead
+      -> Maybe ExclusiveStartKey
+      -> Maybe IndexName
+      -> Maybe KeyConditions
+      -> Maybe Limit
+      -> Maybe ReturnConsumedCapacity
+      -> Maybe ScanIndexForward
+      -> Maybe Select
+      -> Query
+query a b c d e f g h i j = Query a b c d e f g h i j
 
 
 

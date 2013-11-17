@@ -18,7 +18,7 @@ import qualified Data.Text as T
 data DescribeTable
     = DescribeTable
         {
-          dtTableName:: TableName
+          dtTableName:: TableName -- Yes
         }
     deriving (Show, Eq)
 

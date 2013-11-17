@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Aws.ElasticTranscoder.Json.Test
     ( 
       testAll
@@ -6,7 +7,10 @@ module Aws.ElasticTranscoder.Json.Test
 
 import           Aws.DynamoDB.Json.Types
 import           Text.Printf
-import           Data.Aeson
+import           Data.Aeson                     hiding(Value)
+import qualified Data.Map                       as Map
+import           Control.Applicative
+import           Control.Monad
 import qualified Test.QuickCheck                as QC
 import qualified Distribution.TestSuite         as TS
 
@@ -18,7 +22,6 @@ tests = map TS.impure simple_tests
 -}
 
 -- | Something to run in ghci:
-
 testAll :: IO ()
 testAll = mapM_ part simple_tests
       where
@@ -28,7 +31,6 @@ testAll = mapM_ part simple_tests
 
 
 -- | Verbose tests from ghci:
-
 testAllVerbose :: IO ()
 testAllVerbose = mapM_ part simple_tests
       where
@@ -37,37 +39,47 @@ testAllVerbose = mapM_ part simple_tests
                 testST st True
 
 
--- Our list of tests:
-
 simple_tests :: [SimpleTest]
 simple_tests =
     [
---      ae (mk_aet "CreationDateTime"                   :: AETest CreationDateTime),
-      ae (mk_aet "IndexName"                          :: AETest IndexName                ),
-      ae (mk_aet "KeyType"                            :: AETest KeyType                  ),
-      ae (mk_aet "AttributeValue"                     :: AETest AttributeValue           ),
---      ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate     ),      
-      ae (mk_aet "ActionType"                         :: AETest ActionType               ),
-      ae (mk_aet "AttributeDefinition"                :: AETest AttributeDefinition      ),
-      ae (mk_aet "AttributeName"                      :: AETest AttributeName            ),
-      ae (mk_aet "ConsistentRead"                     :: AETest ConsistentRead           ),
-      ae (mk_aet "ConsumedCapacity"                   :: AETest ConsumedCapacity         ),
---      ae (mk_aet "ItemCollectionMetrics"              :: AETest ItemCollectionMetrics    ),
-      ae (mk_aet "KeyType"                            :: AETest KeyType         ),
-      ae (mk_aet "KeySchema"                          :: AETest KeySchemaElement         ),
-      ae (mk_aet "Limit"                              :: AETest Limit         ),
-      ae (mk_aet "LocalSecondaryIndex"                :: AETest LocalSecondaryIndex         ),
-      ae (mk_aet "NonKeyAttribute"                    :: AETest NonKeyAttribute         ),
-      ae (mk_aet "Operator"                           :: AETest Operator        ),
-      ae (mk_aet "Projection"                         :: AETest Projection        ),
-      ae (mk_aet "ProjectionType"                     :: AETest ProjectionType        ),
-      ae (mk_aet "ProvisionedThroughput"              :: AETest ProvisionedThroughput        )
-      , ae (mk_aet "ReturnConsumedCapacity"             :: AETest ReturnConsumedCapacity        )
-      , ae (mk_aet "ReturnItemCollectionMetrics"       :: AETest ReturnItemCollectionMetrics        )
-      , ae (mk_aet "ReturnValues"                     :: AETest ReturnValues       )
-      , ae (mk_aet "TableStatus"                     :: AETest TableStatus       )                        
 
---      ae (mk_aet "TableDescription"                   :: AETest TableDescription)      
+      ae (mk_aet "AttributeValue"                       :: AETest AttributeValue           )
+      , ae (mk_aet "LocalSecondaryIndexDescription"     :: AETest LocalSecondaryIndexDescription        )      
+      , ae (mk_aet "Item"     :: AETest Item        )         
+--      , ae (mk_aet "ItemCollectionKey"              :: AETest ItemCollectionKey      ) 
+--      , ae (mk_aet "Condition"                          :: AETest Condition           )
+        {-
+
+      , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate     )
+      , ae (mk_aet "ActionType"                         :: AETest ActionType               )
+      , ae (mk_aet "AttributeDefinition"                :: AETest AttributeDefinition      )
+      , ae (mk_aet "AttributeName"                      :: AETest AttributeName            )
+      , ae (mk_aet "ConsistentRead"                     :: AETest ConsistentRead           )
+      , ae (mk_aet "ConsumedCapacity"                   :: AETest ConsumedCapacity         )
+      , ae (mk_aet "ExpectedAttributeValue"             :: AETest ExpectedAttributeValue)
+      , ae (mk_aet "IndexName"                          :: AETest IndexName                )
+
+      , ae (mk_aet "ItemCollectionMetrics"              :: AETest ItemCollectionMetrics      ) -- Double
+      , ae (mk_aet "KeyConditions"                      :: AETest KeyConditions            )
+      , ae (mk_aet "KeyType"                            :: AETest KeyType                    )
+      , ae (mk_aet "Keys"                               :: AETest Keys                       )
+      , ae (mk_aet "KeySchemeElement"                   :: AETest KeySchemaElement           )
+      , ae (mk_aet "Limit"                              :: AETest Limit                      )
+      , ae (mk_aet "LocalSecondaryIndex"                :: AETest LocalSecondaryIndex        )
+      , ae (mk_aet "NonKeyAttribute"                    :: AETest NonKeyAttribute            )
+      , ae (mk_aet "Operator"                           :: AETest ComparisonOperator         )
+      , ae (mk_aet "Projection"                         :: AETest Projection                 )
+      , ae (mk_aet "ProjectionType"                     :: AETest ProjectionType             )
+      , ae (mk_aet "ProvisionedThroughput"              :: AETest ProvisionedThroughput      )
+      , ae (mk_aet "ProvisionedThroughputDescription"              :: AETest ProvisionedThroughputDescription      )
+      , ae (mk_aet "ReturnConsumedCapacity"             :: AETest ReturnConsumedCapacity     )
+      , ae (mk_aet "ReturnItemCollectionMetrics"        :: AETest ReturnItemCollectionMetrics)
+      , ae (mk_aet "ReturnValues"                       :: AETest ReturnValues               )
+      , ae (mk_aet "ScanFIlter"                         :: AETest ScanFilter               )
+      , ae (mk_aet "TableStatus"                        :: AETest TableStatus                )                        
+      , ae (mk_aet "TableDescription"                   :: AETest TableDescription) 
+      , ae (mk_aet "Value"                                :: AETest Value)
+-}
     ]
   where
     ae (AET st) = st

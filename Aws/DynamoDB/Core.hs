@@ -37,7 +37,8 @@ import           Control.Monad.IO.Class
 import           Text.Printf
 import           Data.String
 import           Data.Monoid
-import           Data.Aeson
+import           Data.Aeson                     hiding(Value)
+import qualified Data.Aeson                     as A (Value) 
 import           Data.Time
 import           Data.IORef
 import           Data.Maybe
@@ -59,7 +60,7 @@ data DdbQuery
         , ddbqRequest :: T.Text
         , ddbqQuery   :: HTTP.Query
         , ddbqCommand :: T.Text
-        , ddbqBody    :: Maybe Value
+        , ddbqBody    :: Maybe A.Value
         } deriving (Show)
 
 data DdbConfiguration qt

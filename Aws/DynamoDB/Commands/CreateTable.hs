@@ -17,40 +17,14 @@ import           Data.Aeson
 import qualified Data.Text as T
 
 
--- | A brief example createJob program
---
--- @
---      {-# LANGUAGE OverloadedStrings  #-}
---      
---      import           Aws
---      import           Aws.DynamoDB
---      import           Network.HTTP.Conduit
---      
---      myCreateJob :: IO ()
---      myCreateJob = 
---       do cfg <- Aws.baseConfiguration
---          rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ets_cfg mgr $ 
---                      createJob "Wildlife.wmv" "Wildlife-t.f4v" my_preset my_pipeline
---          print rsp
---        
---      my_ets_cfg :: EtsConfiguration NormalQuery
---      my_ets_cfg = etsConfiguration HTTPS etsEndpointEu
---              
---      my_preset :: PresetId
---      my_preset = "1351620000001-000001"             -- System preset: Generic 720p
---              
---      my_pipeline :: PipelineId
---      my_pipeline = "<one-of-ypour-pipeline-ids>"
--- @
-
 
 data CreateTable
     = CreateTable
-        { ctAttributeDefinitions    :: [AttributeDefinition]
-          , ctKeySchema             :: KeySchema
-          , ctLocalSecondaryIndexes :: [LocalSecondaryIndex]
-          , ctProvisionedThroughput :: ProvisionedThroughput
-          , ctTableName             :: T.Text
+        { ctAttributeDefinitions    :: [AttributeDefinition]       -- Yes
+          , ctKeySchema             :: KeySchema                   -- Yes
+          , ctProvisionedThroughput :: ProvisionedThroughput       -- Yes
+          , ctTableName             :: TableName                   -- Yes
+          , ctLocalSecondaryIndexes :: Maybe [LocalSecondaryIndex] -- No
         }
     deriving (Show,Eq)
 
@@ -77,7 +51,13 @@ data CreateTableResponse
         { ctrTableDescription :: TableDescription}
     deriving (Show,Eq)
 
-createTable :: [AttributeDefinition] -> KeySchema ->  [LocalSecondaryIndex] -> ProvisionedThroughput -> T.Text -> CreateTable
+-- Checked
+createTable :: [AttributeDefinition]
+               -> KeySchema
+               -> ProvisionedThroughput
+               -> T.Text
+               ->  Maybe [LocalSecondaryIndex]
+               -> CreateTable
 createTable  ad ks lsi pt tn = CreateTable ad ks lsi pt tn
 
 

@@ -16,10 +16,9 @@ import qualified Data.Text as T
 
 
 data ListTables
-    = ListTables
-        {
-          ltExclusivesStartTableName :: TableName
-          , ltLimit :: Int
+    = ListTables{
+          ltExclusivesStartTableName :: Maybe TableName -- No
+          , ltLimit                  :: Maybe Int       -- No
         }
     deriving (Show, Eq)
 
@@ -39,7 +38,7 @@ data ListTablesResponse
     deriving (Show,Eq)
 
 
-listTables :: TableName -> Int -> ListTables
+listTables :: Maybe TableName -> Maybe Int -> ListTables
 listTables a b= ListTables a b
 
 instance SignQuery ListTables where

@@ -5,79 +5,95 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-} 
 {-# LANGUAGE RecordWildCards            #-} 
-{-# LANGUAGE EmptyDataDecls             #-} 
+{-# LANGUAGE EmptyDataDecls             #-}
+{-# LANGUAGE FlexibleInstances          #-}
 module Aws.DynamoDB.Json.Types
     (
       ActionType(..)
       , AttributeDefinition(..)
-      , Attributes(..)
       , AttributeName(..)
+--      , AttributeToGet(..)
       , AttributeType(..)
       , AttributeValue(..)
+      , AttributeValueUpdate(..)
+      , Condition(..)
       , ConsumedCapacity(..)
       , ConsistentRead(..)
       , DateTime(..)
       , ExclusiveTableName(..)
+      , ExclusiveStartKey(..)
       , Expected(..)
+      , ExpectedAttributeValue(..)        
       , DdbServiceError(..)
       , ItemCollectionMetrics(..)
       , IndexName(..)
       , Item(..)
-      , Key(..)
-      , KeyValue(..)
+      , Keys(..)
+      , KeyConditions(..)
+--      , KeyValue(..)
       , KeySchema(..)
       , KeySchemaElement(..)
       , KeyType(..)
       , Limit(..)
         
       , LocalSecondaryIndex(..)
+      , LocalSecondaryIndexDescription(..)
       , NonKeyAttribute(..)
-      , Operator(..)
+      , ComparisonOperator(..)
       , Projection(..)
       , ProjectionType(..)
       , ProvisionedThroughput(..)
+      , ProvisionedThroughputDescription(..)        
 
       , ReturnConsumedCapacity(..)
       , ReturnItemCollectionMetrics(..)
       , ReturnValues(..)
+      , ScanFilter(..)        
+      , Select(..)
+      , ScanIndexForward(..)
       , TableDescription(..)
       , TableName(..)
       , TableStatus(..)
-      , Value_(..)
+      , Value(..)
 --       
     ) where
 
 import           Data.Maybe
 import           Control.Monad
 import           Control.Applicative
-import           Text.Printf
-import           Text.Regex
+
 import           Data.String
 
-import qualified Data.Map                       as Map
-import           Data.Aeson
-import qualified Data.Aeson.Types               as A
+--import           Test.QuickCheck.Arbitrary.ToolShed.Test.QuickCheck.Arbitrary.Map
+--import           ToolShed.Test.QuickCheck.Arbitrary.Map
+
+import qualified Data.Map.Strict                as Map
+import           Data.Aeson                     hiding (Value)
+import qualified Data.Aeson.Types               as A 
 import qualified Data.Text                      as T
 import qualified Test.QuickCheck                as QC
 import           Safe
 
 type AttributeName = T.Text
 type TableName = T.Text
-type Key       = T.Text
-type KeyValue  = (Key, Value_)
-type DateTime = Double
+--type Key       = T.Text
+--type KeyValue  = (Key, Value_)
+type NonKeyAttribute = T.Text
+type DateTime = Int
 type IndexName = T.Text
 type KeySchema = [KeySchemaElement]
 data Assoc b    = Assoc T.Text b
+type ItemCollectionKey = Map.Map T.Text AttributeValue
 --type AssocList a b = [Assoc a b]
 
 instance QC.Arbitrary T.Text where
   arbitrary = T.pack <$> QC.arbitrary
 
-instance (ToJSON b) => ToJSON (Assoc b) where
-  toJSON (Assoc a b) = object [ a .= toJSON b]
-instance FromJSON (Assoc b) where
-  parseJSON _ = mzero
+--instance (ToJSON b) => ToJSON (Assoc b) where
+--  toJSON (Assoc a b) = object [ a .= toJSON b]
+--instance FromJSON (Assoc b) where
+--  parseJSON _ = mzero
+
 
 --
 -- | AttributeDefinition
@@ -162,8 +178,8 @@ data ActionType = ADD | PUT | DELETE
 actionType_t :: ActionType -> T.Text
 actionType_t a =
   case a of
-    ADD -> "ADD"
-    PUT -> "PUT"
+    ADD    -> "ADD"
+    PUT    -> "PUT"
     DELETE -> "DELETE"
 actionType_m :: Map.Map T.Text ActionType
 actionType_m = text_map actionType_t
@@ -175,38 +191,52 @@ instance FromJSON ActionType where
 instance QC.Arbitrary ActionType  where
   arbitrary = QC.elements [minBound.. maxBound]
 
-data Attributes = Attributes{
-                            }
+--
+-- | AttributeValueList = [AttributeValue]
+--
+  
+--
+-- | AttributeValueUpdate -- tested
+--
+data AttributeValueUpdate = AttributeValueUpdate{
+  action :: Maybe ActionType
+  , value:: Maybe AttributeValue
+  }deriving(Show, Eq)
 
---
--- | AttributeValueUpdate -- not tested
---
-data AttributeValueUpdate = Action{actionType:: ActionType}|
-                            Value AttributeValue
 instance ToJSON AttributeValueUpdate where
-  toJSON Action{actionType =a}   = object ["actionType" .= a]
-  toJSON v@(Value av) = toJSON av
+  toJSON (AttributeValueUpdate a v) =
+    object [
+      "Action" .= a, "Value" .= v
+           ]
+instance FromJSON AttributeValueUpdate where
+  parseJSON (Object v) = AttributeValueUpdate <$>
+                         v .:? "Action"       <*>
+                         v .:? "Value"
+
+instance QC.Arbitrary AttributeValueUpdate where
+  arbitrary = AttributeValueUpdate <$> QC.arbitrary <*> QC.arbitrary
 
 --
--- | ConsumedCapacity
+-- | ConsumedCapacity -- tested
 --
 data ConsumedCapacity = ConsumedCapacity{
-  ccCacacityUnits :: Int,
-  ccTableName     :: TableName
+  ccCacacityUnits :: Maybe Int,
+  ccTableName     :: Maybe TableName
   }deriving(Show, Eq)
 instance ToJSON ConsumedCapacity where
-  toJSON ConsumedCapacity{ccCacacityUnits = u, ccTableName =t} =
+  toJSON ConsumedCapacity{ccCacacityUnits = u, ccTableName = t} =
     object[ "CapacityUnits" .= u, "TableName" .= t]
 instance FromJSON ConsumedCapacity where
   parseJSON (Object v) = ConsumedCapacity <$>
-              v .: "CapacityUnits" <*>
-              v .: "TableName"
-  parseJSON _ = mzero
+              v .:? "CapacityUnits"       <*>
+              v .:? "TableName"            
+              
+--  parseJSON _ = mzero
 instance QC.Arbitrary ConsumedCapacity where
   arbitrary = ConsumedCapacity <$> QC.arbitrary <*> QC.arbitrary
 
 --
--- | ConsumedCapacity
+-- | ConsistentRead -- tested
 --
 newtype ConsistentRead = ConsistentRead Bool
   deriving(Show, Eq)
@@ -218,18 +248,38 @@ instance FromJSON ConsistentRead where
 instance QC.Arbitrary ConsistentRead where
   arbitrary = ConsistentRead <$> QC.arbitrary
 
+--
+-- | Condition -- tested
+--
+data Condition = Condition{
+  cComparisonOperator :: ComparisonOperator
+  , cAttributeList    :: Maybe [AttributeValue]
+  }deriving(Show, Eq)
 
---data Condition = Condition{}
+instance ToJSON Condition where
+  toJSON (Condition a b) = object[
+    "ComparisonOperator" .= a
+    , "AttributeList"    .= b
+    ]
+instance FromJSON Condition where
+  parseJSON (Object v) = Condition <$>
+                         v .: "ComparisonOperator" <*>
+                         v .: "AttributeList"
+  parseJSON _          = mzero                         
+
+instance QC.Arbitrary Condition where
+  arbitrary = Condition <$> QC.arbitrary <*> QC.arbitrary
+
 
 
 --
 -- | Operator
 --
-data Operator
+data ComparisonOperator
   = EQ_ |NE_| LE_ | LT_ | GE_ | GT_ | BEGIN_WITH_ | BETWEEN_ | NOT_NULL_ | NULL_ |CONTAINS_| NOT_CONTAINS_| IN_
   deriving(Show, Eq, Ord, Bounded, Enum)
-operator_t :: Operator -> T.Text
-operator_t op =
+comparisonOperator_t :: ComparisonOperator -> T.Text
+comparisonOperator_t op =
   case op of
     EQ_ -> "EQ"
     NE_ -> "NE"
@@ -244,41 +294,71 @@ operator_t op =
     CONTAINS_     -> "CONTAINS"
     NOT_CONTAINS_ -> "NOT_CONTAINS"
     IN_           -> "IN"
-operator_m :: Map.Map T.Text Operator
-operator_m = text_map operator_t
+comparisonOperator_m :: Map.Map T.Text ComparisonOperator
+comparisonOperator_m = text_map comparisonOperator_t
 
-instance ToJSON Operator where
-  toJSON = String . operator_t
-instance FromJSON Operator where
-  parseJSON = json_str_map_p operator_m
-instance QC.Arbitrary Operator where
+instance ToJSON ComparisonOperator where
+  toJSON = String . comparisonOperator_t
+instance FromJSON ComparisonOperator where
+  parseJSON = json_str_map_p comparisonOperator_m
+instance QC.Arbitrary ComparisonOperator where
   arbitrary = QC.elements [minBound..maxBound]
 
-
-data ExpectedAttributeValue
+data ExclusiveStartKey = ExclusiveStartKey{}
+                         deriving(Show, Eq)
 
 --
--- | ItemCollectionKey not tested
+-- | ExpectedAttributeValue -- tested
 --
-type ItemCollectionKey = Map.Map T.Text AttributeValue
+data ExpectedAttributeValue = ExpectedAttributeValue{
+  eavExist :: Maybe Bool
+  , eavValue :: Maybe AttributeValue
+  }deriving(Show, Eq)
+instance ToJSON ExpectedAttributeValue where
+  toJSON (ExpectedAttributeValue a b) = object["Exist" .= a, "Value" .= b]
+instance FromJSON ExpectedAttributeValue where
+  parseJSON (Object v) = ExpectedAttributeValue <$>
+                         v .:? "Exist" <*>
+                         v .:? "Value"
+instance QC.Arbitrary ExpectedAttributeValue where  
+  arbitrary = ExpectedAttributeValue <$> QC.arbitrary <*> QC.arbitrary
+
+--
+-- | ItemCollectionMetrics --tested
+--
 data ItemCollectionMetrics = ItemCollectionMetrics{
   icmItemCollectionKey     :: Maybe ItemCollectionKey
   , icmSizeEstimateRangeGB :: Maybe [Double]
   }deriving(Show, Eq)
+instance ToJSON  ItemCollectionMetrics where
+  toJSON (ItemCollectionMetrics a b) = object ["ItemCollectionKey" .= a, "SizeEstimateRangeGB".=b]
 instance FromJSON ItemCollectionMetrics where
   parseJSON (Object v) =
-    ItemCollectionMetrics <$>
-    v .:? "ItemCollectionKey" <*>
-    v .:? "SizeEstimateRangeGB"
---instance QC.Arbitrary ItemCollectionMetrics where
---  arbitrary = ItemCollectionMetrics <$> QC.arbitrary <*> QC.arbitrary
+    ItemCollectionMetrics     <$>
+    v .:? "ItemCollectionKey" <*> v .:? "SizeEstimateRangeGB"
+instance QC.Arbitrary ItemCollectionMetrics where
+  arbitrary = ItemCollectionMetrics <$> QC.arbitrary <*> QC.arbitrary
 
 --
--- | KeysAndAttributes
+-- | KeyConditions  -- tested
 --
-data KeysAndAttributes
+data KeyConditions = KeyConditions (Map.Map T.Text Condition)
+                     deriving(Show, Eq)
+
+instance ToJSON KeyConditions where
+  toJSON(KeyConditions k) = object["KeyConditions" .= k]
+instance FromJSON KeyConditions where
+  parseJSON (Object v) = KeyConditions <$>
+                         v .: "KeyConditions"
+instance QC.Arbitrary KeyConditions where  
+  arbitrary = KeyConditions <$> QC.arbitrary
+
+data ScanFilter = ScanFilter (Map.Map T.Text Condition)
+                     deriving(Show, Eq)
+
+
 --
--- | KeySchemaElement
+-- | KeySchemaElement -- tested
 --
 data KeySchemaElement = KeySchemaElement{
   kseAttributeName :: T.Text
@@ -298,8 +378,22 @@ instance QC.Arbitrary KeySchemaElement where
               QC.arbitrary <*>
               QC.arbitrary
 
+--
+-- | Keys -- tested
+--
+data Keys  = Keys (Map.Map T.Text Value)
+           deriving (Show, Eq)
+instance  ToJSON Keys where
+  toJSON (Keys a)  = object["Keys" .= a]
+instance FromJSON Keys where
+  parseJSON (Object v) = Keys <$> v .: "Keys"
+  parseJSON _          = mzero
+instance  QC.Arbitrary Keys where
+  arbitrary = Keys <$> QC.arbitrary
+
+
 --  
--- | KeyType
+-- | KeyType -- tested
 --
 data KeyType = HASH | RANGE
                       deriving(Show, Eq, Ord, Bounded, Enum)
@@ -319,7 +413,7 @@ instance QC.Arbitrary KeyType where
 
 
 --
--- | Limit  
+-- | Limit  -- tested
 --
 newtype Limit = Limit{_Limit::Int}
              deriving(Show, Eq)
@@ -335,7 +429,7 @@ instance QC.Arbitrary Limit where
 -- | LocalSecondaryIndex -- test failed
 --
 data LocalSecondaryIndex = LocalSecondaryIndex{
-  lsiIndexName:: IndexName
+  lsiIndexName   :: IndexName
   , lsiKeySchema :: KeySchema
   , lsiProjection:: Projection
   }deriving(Show, Eq)
@@ -343,7 +437,7 @@ instance ToJSON LocalSecondaryIndex where
   toJSON a = object[
     "IndexName"      .= lsiIndexName a
     , "KeySchema"    .= lsiKeySchema a
-    , "lsiProjection" .= lsiProjection a]
+    , "Projection" .= lsiProjection a]
 instance FromJSON LocalSecondaryIndex where
   parseJSON (Object v) =
     LocalSecondaryIndex <$>
@@ -357,38 +451,56 @@ instance QC.Arbitrary LocalSecondaryIndex where
               QC.arbitrary <*>
               QC.arbitrary              
 
+--
+-- | LocalSecondaryIndexDescription
+--
+data LocalSecondaryIndexDescription = LocalSecondaryIndexDescription{
+  lsidIndexName        :: Maybe T.Text
+  , lsidIndexSizeBytes :: Maybe Int
+  , lsidItemCount      :: Maybe Int
+  , lsidKeySchema      :: Maybe KeySchema
+  , lsidProjection     :: Maybe Projection
+  }deriving(Show, Eq)
+instance ToJSON LocalSecondaryIndexDescription where
+  toJSON (LocalSecondaryIndexDescription a b c d e) = object[
+    "IndexName" .= a
+    , "IndexSizeBytes" .= b
+    , "ItemCount"      .= c
+    , "KeySchema"      .= d
+    , "Projection"     .= e
+    ] 
+instance FromJSON LocalSecondaryIndexDescription where
+  parseJSON (Object v) = LocalSecondaryIndexDescription <$>
+                         v .: "IndexName"     <*>
+                         v .: "IndexSizeBytes"     <*>
+                         v .: "ItemCount"     <*>
+                         v .: "KeySchema"     <*>
+                         v .: "Projection"
+instance QC.Arbitrary LocalSecondaryIndexDescription where  
+  arbitrary = LocalSecondaryIndexDescription <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary 
 
-data LocalSecondaryIndexDescription
---
--- | NonKeyAttribute
---
-data NonKeyAttribute = NonKeyAttribute{type_::[T.Text]}
-                       deriving(Show, Eq)
-instance ToJSON NonKeyAttribute where
-  toJSON a = object[
-    "NonKeyAttributes" .= (toJSON . type_ $ a)]
-instance FromJSON NonKeyAttribute where
-  parseJSON (Object v)= v .: "NonKeyAttributes"
-  parseJSON _ = mzero
-instance QC.Arbitrary NonKeyAttribute where
-  arbitrary = NonKeyAttribute <$> QC.arbitrary
 
 --
--- | Projection
+-- | Projection -- tested
 --
 data Projection = Projection{
-  pNonKeyAttribute::[NonKeyAttribute]
+  pNonKeyAttributes::[NonKeyAttribute]
   , pProjectionType::[ProjectionType]
   }deriving(Show, Eq)
 instance ToJSON Projection where
-  toJSON a = object[
-    "NonKeyAttribute" .= pNonKeyAttribute a
-    , "ProjectionType" .= pProjectionType a]
+  toJSON (Projection a b) = object[
+    "NonKeyAttributes" .= a
+    , "ProjectionType" .= b]
 
 instance FromJSON Projection where
   parseJSON (Object v) =
     Projection             <$>
-    v .: "NonKeyAttribute" <*>
+    v .: "NonKeyAttributes" <*>
     v .: "ProjectionType"
   parseJSON _ = mzero    
 instance QC.Arbitrary Projection where
@@ -396,7 +508,7 @@ instance QC.Arbitrary Projection where
               QC.arbitrary <*>
               QC.arbitrary
 --
--- | ProjectionType failed
+-- | ProjectionType -- tested
 --
 data ProjectionType = ALL_ | KEYS_ONLY_ | INCLUDE_
                     deriving(Show, Eq, Ord, Bounded, Enum)
@@ -416,43 +528,64 @@ instance FromJSON ProjectionType where
 instance QC.Arbitrary ProjectionType where  
   arbitrary =  QC.elements [minBound..maxBound]
 
+--
+-- | ProvisionedThroughput -- failed when DateTime = Double
+--                         -- passed if DateTime = Int
 data ProvisionedThroughput = ProvisionedThroughput{
-  ptReadCapacityUnits::Int
+  ptReadCapacityUnits   ::Int
   , ptWriteCapacityUnits::Int
-  , ptLastDecreasedTime :: Maybe DateTime
-  , ptLastIncreasedTime :: Maybe DateTime
-  , ptNumberOfDecreasedToday :: Maybe DateTime
   }deriving(Show, Eq)
 instance ToJSON ProvisionedThroughput where
-  toJSON (ProvisionedThroughput a b c d e) =
+  toJSON (ProvisionedThroughput a b) =
     object (["ReadCapacityUnits"        .= a
           , "WriteCapacityUnits"     .= b]) -- ++ obp)
-    where
-      obp = map (\(x, y) -> x .= y) $
-        filter (\(x, y) -> isJust y) 
-               [("LastDecreasedTime", c), ("LastIncreasedTime", d), ("NumberOfDecreasedToday", e)]
 
 instance FromJSON ProvisionedThroughput where
   parseJSON (Object v) =
-    ProvisionedThroughput <$>
-    v .: "ReadCapacityUnits"     <*>
-    v .: "WriteCapacityUnits"    <*>
-    v .:? "LastDecreasedTime"    <*>
-    v .:? "LastIncreasedTime"    <*>
-    v .:? "NumberOfDecreasedToday"
+    ProvisionedThroughput     <$>
+    v .: "ReadCapacityUnits"  <*>
+    v .: "WriteCapacityUnits" 
   parseJSON _ = mzero
 instance QC.Arbitrary ProvisionedThroughput where
   arbitrary = ProvisionedThroughput <$>
               QC.arbitrary <*>
-              QC.arbitrary <*>
-              QC.arbitrary <*>
-              QC.arbitrary <*>
-              QC.arbitrary              
+              QC.arbitrary
 
-
-data ProvisionedThroughputDescription
 --
--- | ReturnConsumedCapacity
+-- | ProvisionedThroughputDescription -- failed when DateTIme=Double
+--                                    -- passed if DateTime = Int
+data ProvisionedThroughputDescription = ProvisionedThroughputDescription{
+  ptdLastDecreaseDateTime     :: Maybe DateTime
+  , ptdLastIncreaseDateTime   :: Maybe DateTime
+  , ptdNumberOfDecreaseToday  :: Maybe Int
+    , ptdReadCapacityUnites   :: Maybe Int
+      , ptdWriteCapacityUnits :: Maybe Int
+  }deriving(Show, Eq)
+instance ToJSON ProvisionedThroughputDescription where
+  toJSON(ProvisionedThroughputDescription a b c d e) =
+    object ["LastDecreaseDateTime"    .= a
+            , "LastIncreaseDateTime"  .= b
+            , "NumberOfDecreaseToday" .= c
+            , "ReadCapacityUnits"     .= d
+              , "WriteCapacityUnits"  .= e]
+
+instance FromJSON ProvisionedThroughputDescription where
+  parseJSON (Object v) = ProvisionedThroughputDescription <$>
+                         v .:? "LastDecreaseDateTime" <*>
+                         v .:? "LastIncreaseDateTime" <*>
+                         v .:? "NumberOfDecreaseToday" <*>
+                         v .:? "ReadCapacityUnits"     <*>
+                         v .:? "WriteCapacityUnits"
+  parseJSON _ = mzero
+instance QC.Arbitrary ProvisionedThroughputDescription where
+  arbitrary = ProvisionedThroughputDescription <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary               
+--
+-- | ReturnConsumedCapacity -- tested
 -- 
 data ReturnConsumedCapacity = TOTAL | NONE
                             deriving(Show, Eq, Ord, Bounded, Enum)
@@ -473,7 +606,7 @@ instance QC.Arbitrary ReturnConsumedCapacity where
 
 
 --
--- | ReturnItemCollectionMetrics
+-- | ReturnItemCollectionMetrics  -- tested
 --  
 data ReturnItemCollectionMetrics = SIZE | NONE_
                             deriving(Show, Eq, Ord, Bounded, Enum)
@@ -494,7 +627,7 @@ instance QC.Arbitrary ReturnItemCollectionMetrics where
   arbitrary = QC.elements [minBound..maxBound]
 
 --
--- | ReturnValues
+-- | ReturnValues  -- tested
 --
 data ReturnValues = RV_NONE | ALL_OLD | UPDATED_OLD | ALL_NEW | UPDATED_NEW
                   deriving(Show, Eq, Ord, Bounded, Enum)
@@ -516,48 +649,64 @@ instance FromJSON ReturnValues where
 instance QC.Arbitrary ReturnValues where
   arbitrary = QC.elements [minBound..maxBound]
 
+
+--
+-- | ScanFilter  -- tested
+--
+instance ToJSON ScanFilter where
+  toJSON(ScanFilter k) = object["ScanFilter" .= k]
+instance FromJSON ScanFilter where
+  parseJSON (Object v) = ScanFilter <$>
+                         v .: "ScanFilter"
+instance QC.Arbitrary ScanFilter where  
+  arbitrary = ScanFilter <$> QC.arbitrary
+
+
+data ScanIndexForward = ScanIndexForward Bool
+                      deriving(Show, Eq)
+data Select = ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | COUNT | SPECIFIC_ATTRIBUTES
+              deriving(Show, Eq)
+
 data ScanResult
 --
--- | TableDescription failed 'cause of Double
---  
+-- | TableDescription failed because of Double
+--                    succeeded if DateTime = Int
 data TableDescription = TableDescription{
-  tdAttributeDefinitions:: [AttributeDefinition]
-  , tdCreationDateTime   :: DateTime 
-  , tdItemCount          :: Int 
-  , tdKeySchema          :: KeySchema
-  , tdLocalSeconadaryIndexes ::Maybe [LocalSecondaryIndex]  
-  , tdProvisionedThroughput :: ProvisionedThroughput 
-  , tdTableName :: TableName
-  , tdTableSizeBytes :: Int
-  , tdTableStatus :: TableStatus
+  tdAttributeDefinitions     :: Maybe [AttributeDefinition] 
+  , tdCreationDateTime       :: Maybe DateTime 
+  , tdItemCount              :: Maybe Int 
+  , tdKeySchema              :: Maybe KeySchema 
+  , tdLocalSeconadaryIndexes :: Maybe [LocalSecondaryIndex]
+  , tdProvisionedThroughput  :: Maybe ProvisionedThroughput 
+  , tdTableName              :: Maybe TableName 
+  , tdTableSizeBytes         :: Maybe Int
+  , tdTableStatus            :: Maybe TableStatus 
   }deriving(Show, Eq)
 instance ToJSON TableDescription where
   toJSON a = object[
-    "AttributeDefinitions"  .= tdAttributeDefinitions a,
-    "CreationDateTime"      .= tdCreationDateTime a,
-    "ItemCount"             .= tdItemCount a,
-    "KeySchema"             .= tdKeySchema a, 
-    "LocalSecondaryIndexes" .= tdLocalSeconadaryIndexes a,
-    "ProvisonedThroughput"  .= tdProvisionedThroughput a,
-    "TableName"             .= tdTableName a,
-    "TableSizeBytes"        .= tdTableSizeBytes a,
-    "TableStatus"           .= tdTableStatus a
+    "AttributeDefinitions"  .= tdAttributeDefinitions a 
+    , "CreationDateTime"      .= tdCreationDateTime a
+    , "ItemCount"             .= tdItemCount a
+    , "KeySchema"             .= tdKeySchema a 
+    , "LocalSecondaryIndexes" .= tdLocalSeconadaryIndexes a
+    , "ProvisionedThroughput" .= tdProvisionedThroughput a  
+    , "TableName"             .= tdTableName a
+    , "TableSizeBytes"        .= tdTableSizeBytes a
+    , "TableStatus"           .= tdTableStatus a
     ]
-           
 instance FromJSON TableDescription where
   parseJSON (Object v) =
     TableDescription <$>
-    v .: "AttributeDefinitions"    <*>
-    v .: "CreationDateTime"        <*> 
-    v .: "ItemCount"               <*>
-    v .: "KeySchema"               <*> 
-    v .:? "LocalSecondaryIndexes"  <*>
-    v .: "ProvisionedThroughput"   <*>
-    v .: "TableName"               <*>
-    v .: "TableSizeBytes"          <*>
-    v .: "TableStatus" 
+    v .:? "AttributeDefinitions"    <*>
+    v .:? "CreationDateTime"        <*> 
+    v .:? "ItemCount"               <*>
+    v .:? "KeySchema"               <*> 
+    v .:? "LocalSecondaryIndexes"   <*> 
+    v .:? "ProvisionedThroughput"   <*>
+    v .:? "TableName"               <*>
+    v .:? "TableSizeBytes"          <*>
+    v .:? "TableStatus" 
   parseJSON _ = mzero
-
 instance QC.Arbitrary TableDescription where
   arbitrary = TableDescription <$>
               QC.arbitrary <*>
@@ -570,7 +719,7 @@ instance QC.Arbitrary TableDescription where
               QC.arbitrary <*>
               QC.arbitrary 
 --
--- | TableStatus
+-- | TableStatus -- tested
 --
 data TableStatus = ACTIVE | CREATING
                             deriving(Show, Eq, Ord, Bounded, Enum)
@@ -592,12 +741,14 @@ instance QC.Arbitrary TableStatus where
 -- | Item not tested
 --
 data Item = Item{
-  iItem :: Map.Map T.Text Value_
+  iItem :: Map.Map T.Text Value -- Key ?
   }deriving(Show, Eq)
 instance ToJSON Item where
   toJSON (Item a) = toJSON a
---instance ToJSON Item where
---  toJSON a = object [ "ForumName" .= object [ "S" .= String "123456"]]
+instance FromJSON Item where
+  parseJSON (Object v) = undefined
+instance QC.Arbitrary Item where
+  arbitrary = Item <$> QC.arbitrary
 
 newtype ExclusiveTableName = ExclusiveTableName{_ExclusiveTableName::TableName}
                            deriving(Show, Eq)
@@ -605,7 +756,7 @@ instance ToJSON ExclusiveTableName where
   toJSON ex = object[ "ExclusiveTableName" .= _ExclusiveTableName ex]
 
 data Expected = Expected{
-  eExpected:: Map.Map T.Text (Maybe Exists, Maybe Value_)
+  eExpected:: Map.Map T.Text (Maybe Exists, Maybe Value)
   }deriving(Show, Eq)
 
 instance ToJSON Expected where
@@ -618,27 +769,35 @@ instance ToJSON Exists where
   toJSON (Exists True)  = object["Exists" .= True]
   toJSON (Exists False) = object["Exists" .= False]
 
-
-
-data Value_ =
-  ValueB T.Text
-  | ValueBS [T.Text]
-  | ValueN Int
-  | ValueNS [T.Text]
-  | ValueS T.Text
+--
+-- | Value -- tested
+--
+data Value =
+  ValueB    T.Text    -- Should be ByteString
+  | ValueBS [T.Text]  -- Should be ByteString
+  | ValueN  Int
+  | ValueNS [Int]
+  | ValueS  T.Text
   | ValueSS [T.Text]
     deriving(Show, Eq)
 
-instance ToJSON Value_ where
+instance ToJSON Value where
   toJSON (ValueB  a) = object[ "B"  .= a]
   toJSON (ValueBS a) = object[ "BS" .= a]
   toJSON (ValueN  a) = object[ "N"  .= a]
   toJSON (ValueNS a) = object[ "NS" .= a]
   toJSON (ValueS  a) = object[ "S"  .= a]
   toJSON (ValueSS a) = object[ "SS" .= a]
-instance FromJSON Value_ where
-  parseJSON a = mzero <|> mzero
-instance QC.Arbitrary Value_ where
+instance FromJSON Value where
+  parseJSON (Object v) = ValueB  <$> v  .: "B"  <|>
+                         ValueBS <$> v  .: "BS" <|>
+                         ValueS  <$> v  .: "S"  <|>
+                         ValueSS <$> v  .: "SS" <|>
+                         ValueN  <$> v  .: "N"  <|>
+                         ValueNS <$> v  .: "NS" 
+  parseJSON _          = mzero
+
+instance QC.Arbitrary Value where
   arbitrary = QC.oneof [liftM ValueB    QC.arbitrary
                         , liftM ValueBS QC.arbitrary
                         , liftM ValueN  QC.arbitrary
@@ -733,3 +892,7 @@ nat_pair = two $ QC.sized $ \n -> QC.choose (0, n)
 
 two :: QC.Gen a -> QC.Gen (a,a)
 two gen = (,) <$> gen <*> gen
+
+---------
+instance (Ord k, QC.Arbitrary k, QC.Arbitrary v) => QC.Arbitrary (Map.Map k v)      where
+        arbitrary       = Map.fromList <$> QC.arbitrary

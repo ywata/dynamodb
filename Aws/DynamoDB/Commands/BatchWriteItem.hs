@@ -11,18 +11,24 @@ module Aws.DynamoDB.Commands.BatchWriteItem
 import           Aws.Core
 import           Aws.DynamoDB.Core
 import           Control.Applicative
-import           Data.Aeson
+import           Data.Aeson         hiding(Value)
+import qualified Data.Aeson         as A (Value)
 import qualified Data.Text as T
 
-
+data NotYet = NotYet
+  deriving (Show, Eq)
 data BatchWriteItem
     = BatchWriteItem
         {
+          bwiRequestItems                  :: NotYet
+          
+          , bwiReturnConsumedCapacity      :: Maybe ReturnConsumedCapacity
+          , bwiReturnItemCollectionMetrics :: Maybe ReturnItemCollectionMetrics
         }
     deriving (Show, Eq)
 
 instance ToJSON BatchWriteItem where
-  toJSON (BatchWriteItem) =
+  toJSON (BatchWriteItem a b c) =
     object[
       ]
 
@@ -32,8 +38,8 @@ data BatchWriteItemResponse
     deriving (Show,Eq)
 
 
-batchWriteItem :: BatchWriteItem
-batchWriteItem= BatchWriteItem
+batchWriteItem :: NotYet -> Maybe ReturnConsumedCapacity -> Maybe ReturnItemCollectionMetrics -> BatchWriteItem
+batchWriteItem a b c = BatchWriteItem a b c
 
 
 
@@ -49,9 +55,14 @@ instance SignQuery BatchWriteItem where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data BatchWriteItemResult = BatchWriteItemResult{}
+
+data BatchWriteItemResult = BatchWriteItemResult{
+  rwrConsumedCapacity :: Maybe ConsumedCapacity
+  , rwrItemCollectionMetrics :: Maybe ItemCollectionMetrics
+  , rwrUnprocessedItems      :: NotYet
+                                                }
 instance FromJSON BatchWriteItemResult where
- parseJSON _ = return BatchWriteItemResult
+ parseJSON _ = return $ BatchWriteItemResult Nothing Nothing  NotYet
 
 instance ResponseConsumer BatchWriteItem BatchWriteItemResponse where
 

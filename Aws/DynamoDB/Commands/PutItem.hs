@@ -22,12 +22,14 @@ import           Aws.DynamoDB.Json.Types
 data PutItem
     = PutItem
         {
-          piExpected::Expected
-          , piItem ::Item
-          , piReturnConsumedCapacity::ReturnConsumedCapacity
-          , piReturnItemCollectionMetrics:: ReturnItemCollectionMetrics
-          , piReutrnValues :: ReturnValues
-          , piTableName :: TableName
+          piItem                         :: Item                              -- Yes
+          , piTableName                  :: TableName                         -- Yes
+          , piExpected                   :: Maybe Expected                    -- No
+
+          , piReturnConsumedCapacity     :: Maybe ReturnConsumedCapacity      -- No
+          , piReturnItemCollectionMetrics:: Maybe ReturnItemCollectionMetrics -- No
+          , piReutrnValues               :: Maybe ReturnValues                -- No
+
         }
     deriving (Show, Eq)
 
@@ -46,14 +48,20 @@ data PutItemResponse
     = PutItemResponse {}
     deriving (Show,Eq)
 
-putItem:: Expected -> Item -> ReturnConsumedCapacity -> ReturnItemCollectionMetrics -> ReturnValues -> TableName -> PutItem
+putItem:: Item
+          -> TableName
+          -> Maybe Expected          
+          -> Maybe ReturnConsumedCapacity
+          -> Maybe ReturnItemCollectionMetrics
+          -> Maybe ReturnValues
+          -> PutItem
 putItem a b c d e f= PutItem a b c d e f
 
 
 data PutItemResult = PutItemResult{
-  pirAttributes::Maybe (Map.Map T.Text Value_),
-  pirConsumedCapacity :: Maybe ConsumedCapacity,
-  pirItemCollectionMetrics :: Maybe ItemCollectionMetrics
+  pirAttributes::Maybe Key
+  , pirConsumedCapacity :: Maybe ConsumedCapacity
+  , pirItemCollectionMetrics :: Maybe ItemCollectionMetrics
   }deriving(Show, Eq)
 instance FromJSON PutItemResult where
   parseJSON (Object v) =

@@ -12,17 +12,23 @@ import           Aws.Core
 import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
+import qualified Data.Map  as Map
 import qualified Data.Text as T
 
 
 data DeleteItem
-    = DeleteItem
-        {
-        }
+    = DeleteItem{
+      diKey                           :: Key                               -- Yes
+      , diTableName                   :: TableName                         -- Yes        
+      , diExpected                    :: Maybe Expected                    -- No
+      , diReturnConsumedCapacity      :: Maybe ReturnConsumedCapacity      -- No
+      , diReturnItemCollectionMetrics :: Maybe ReturnItemCollectionMetrics -- No
+      , diReturnValues                :: Maybe ReturnValues                -- No
+      }
     deriving (Show, Eq)
 
 instance ToJSON DeleteItem where
-  toJSON (DeleteItem) =
+  toJSON (DeleteItem a b c d e f) =
     object[
       ]
 
@@ -32,8 +38,14 @@ data DeleteItemResponse
     deriving (Show,Eq)
 
 
-deleteItem :: DeleteItem
-deleteItem= DeleteItem
+deleteItem :: Key
+              -> TableName
+              -> Maybe Expected
+              -> Maybe ReturnConsumedCapacity
+              -> Maybe ReturnItemCollectionMetrics
+              -> Maybe ReturnValues
+              -> DeleteItem
+deleteItem a b c d e f = DeleteItem a b c d e f
 
 
 

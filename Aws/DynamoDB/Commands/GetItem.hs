@@ -19,11 +19,12 @@ import qualified Data.Text as T
 data GetItem
     = GetItem
         {
-          giAttributesToGet  :: [T.Text]
-          , giConsistentRead :: Maybe Bool
-          , giKey            :: Map.Map T.Text Value_
-          , giReturnConsumedCapacity :: Maybe Bool
-          , giTableName :: TableName
+          giKey                :: Key              -- Yes
+          , giTableName        :: TableName        -- Yes          
+          , giAttributesToGet  :: Maybe [T.Text]   -- No
+          , giConsistentRead   :: Maybe Bool       -- No
+          , giReturnConsumedCapacity :: Maybe Bool -- No
+
         }
     deriving (Show, Eq)
 

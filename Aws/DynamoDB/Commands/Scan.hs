@@ -14,15 +14,24 @@ import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Text as T
 
-
+data NotYet = NotYet deriving(Show, Eq)
 data Scan
     = Scan
-        {
+      {
+        sTableName                  :: TableName                     -- Yes
+          , sAttributeToGet         :: Maybe AttributeToGet
+          , sExclusiveStartKey      :: Maybe ExclusiveStartKey
+          , sLimit                  :: Maybe Limit
+          , sReturnConsumedCapacity :: Maybe ReturnConsumedCapacity
+          , sScanFilter             :: Maybe NotYet -- ScanFilter
+          , sSegment                :: Maybe Int
+          , sSelect                 :: Maybe Select
+          , sTotalSegments          :: Maybe Int
         }
     deriving (Show, Eq)
 
 instance ToJSON Scan where
-  toJSON (Scan) =
+  toJSON (Scan a b c d e f g h i) =
     object[
       ]
 
@@ -32,8 +41,17 @@ data ScanResponse
     deriving (Show,Eq)
 
 
-scan :: Scan
-scan= Scan
+scan :: TableName
+        -> Maybe AttributeToGet
+        -> Maybe ExclusiveStartKey
+        -> Maybe Limit
+        -> Maybe ReturnConsumedCapacity
+        -> Maybe NotYet
+        -> Maybe Int        
+        -> Maybe Select
+        -> Maybe Int
+        -> Scan
+scan a b c d e f g h  = Scan a b c d e f g h 
 
 
 

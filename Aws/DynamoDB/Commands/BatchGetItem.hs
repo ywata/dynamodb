@@ -49,9 +49,14 @@ instance SignQuery BatchGetItem where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data BatchGetItemResult = BatchGetItemResult{}
+data NotYet = NotYet
+data BatchGetItemResult = BatchGetItemResult{
+  rgrConsumedCapacity :: Maybe ConsumedCapacity
+  , rgrResponses      :: Maybe NotYet
+  , rgrUnprocessedKeys:: Maybe NotYet
+  }
 instance FromJSON BatchGetItemResult where
- parseJSON _ = return BatchGetItemResult
+ parseJSON _ = return $ BatchGetItemResult Nothing Nothing Nothing -- NotYet
 
 instance ResponseConsumer BatchGetItem BatchGetItemResponse where
 
