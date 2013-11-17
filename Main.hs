@@ -31,13 +31,21 @@ cre tbn = do
                                [KeySchemaElement "ForumName" HASH, KeySchemaElement "Index" RANGE]
                                (ProvisionedThroughput 1 1) (T.pack tbn) Nothing
   return rsp
-{-
+del::String -> IO DeleteTableResponse
+del tab = do
+  cfg <- Aws.baseConfiguration  
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
+                               D.deleteTable (T.pack tab)
+  return rsp
+
 lt = do
   cfg <- Aws.baseConfiguration
   
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
                                D.listTables (Just "Txx")  (Just 5)
   return rsp
+
+{-
 
 
 dsc = do
@@ -86,20 +94,5 @@ put = do
 
 main = cre "a123"
 
-del::String -> IO DeleteTableResponse
-del tab = do
-  cfg <- Aws.baseConfiguration  
-  rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
-                               D.deleteTable (T.pack tab)
-  return rsp
-
-
---my_ddb_cfg :: DdbConfiguration NormalQuery
---my_ddb_cfg = ddbLocalConfiguration HTTPS ddbEndpointEu
-
-              
-
-
-a = "{\"TableDescription\":{\"AttributeDefinitions\":[{\"AttributeName\":\"Index\",\"AttributeType\":\"N\"},{\"AttributeName\":\"ForumName\",\"AttributeType\":\"S\"}],\"TableName\":\"Txx\",\"KeySchema\":[{\"AttributeName\":\"ForumName\",\"KeyType\":\"HASH\"},{\"AttributeName\":\"Index\",\"KeyType\":\"RANGE\"}],\"TableStatus\":\"ACTIVE\",\"CreationDateTime\":1383482892.691,\"ProvisionedThroughput\":{\"NumberOfDecreasesToday\":0,\"ReadCapacityUnits\":1,\"WriteCapacityUnits\":1},\"TableSizeBytes\":0,\"ItemCount\":0}}"
 
 -}
