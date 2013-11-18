@@ -13,7 +13,7 @@ import           Control.Applicative
 import           Control.Monad
 import qualified Test.QuickCheck                as QC
 import qualified Distribution.TestSuite         as TS
-
+import           Aws.DynamoDB.Commands
 
 -- | Detailed-0.9/Cabal-1.14.0 test suite:
 {-
@@ -40,6 +40,8 @@ simple_tests =
     [
 
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
+      , ae (mk_aet "CreateTable"                          :: AETest CreateTable                )
+      
 --      , ae (mk_aet "Item"     :: AETest Item        )
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
       , ae (mk_aet "ActionType"                         :: AETest ActionType                 )

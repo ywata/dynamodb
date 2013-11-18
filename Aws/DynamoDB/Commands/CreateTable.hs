@@ -13,6 +13,7 @@ import           Aws.Core
 import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Control.Monad
+import qualified Test.QuickCheck   as QC
 import           Data.Aeson
 import qualified Data.Text as T
 
@@ -27,7 +28,6 @@ data CreateTable
           , ctLocalSecondaryIndexes :: Maybe [LocalSecondaryIndex] -- No
         }
     deriving (Show,Eq)
-
 instance ToJSON CreateTable where
   toJSON (CreateTable a b c d e) =
     object[
@@ -36,8 +36,22 @@ instance ToJSON CreateTable where
       , "ProvisionedThroughput" .= c
       , "TableName"             .= d
       , "LocalSecondaryIndexes" .= e
-        
     ]
+instance FromJSON CreateTable where
+  parseJSON (Object v) = CreateTable <$>
+                         v .: "AttributeDefinitions"  <*>
+                         v .: "KeySchema"             <*>
+                         v .: "ProvisionedThroughput" <*>
+                         v .: "TableName"             <*>
+                         v .:? "LocalSecondaryIndexes" 
+instance QC.Arbitrary CreateTable where
+  arbitrary = CreateTable <$>
+              QC.arbitrary  <*>
+              QC.arbitrary  <*>
+              QC.arbitrary  <*>
+              QC.arbitrary  <*>
+              QC.arbitrary 
+
 
 data CreateTableResult = CreateTableResult{
   tableDescription::TableDescription
