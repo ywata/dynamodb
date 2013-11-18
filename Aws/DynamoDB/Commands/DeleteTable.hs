@@ -15,7 +15,7 @@ import           Control.Monad
 import           Data.Aeson
 
 import qualified Data.Text as T
-
+import qualified Test.QuickCheck as QC
 
 data DeleteTable
     = DeleteTable
@@ -29,12 +29,25 @@ instance ToJSON DeleteTable where
     object[
       "TableName" .= a
       ]
+instance FromJSON DeleteTable where
+  parseJSON (Object v) = DeleteTable <$> v .: "TableName"
+  parseJSON _          = mzero
+instance QC.Arbitrary DeleteTable where
+  arbitrary = DeleteTable <$> QC.arbitrary
 
 data DeleteTableResponse
     = DeleteTableResponse {
       dtrTableDescription::TableDescription
-        }
-    deriving (Show,Eq)
+      }deriving (Show,Eq)
+instance ToJSON   DeleteTableResponse where
+  toJSON(DeleteTableResponse a) = object["TableDescription" .= a]
+instance FromJSON DeleteTableResponse where
+  parseJSON (Object v) =
+    DeleteTableResponse <$> v .: "TableDescription" 
+  parseJSON _ = mzero
+instance QC.Arbitrary DeleteTableResponse where
+  arbitrary = DeleteTableResponse <$> QC.arbitrary
+
 
 
 deleteTable :: TableName -> DeleteTable

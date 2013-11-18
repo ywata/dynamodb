@@ -40,6 +40,9 @@ simple_tests =
     [
 
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
+      , ae (mk_aet "DeleteTable"                        :: AETest DeleteTable                )
+      , ae (mk_aet "DeleteTableResponse"                :: AETest DeleteTableResponse        ) 
+      
       , ae (mk_aet "CreateTable"                        :: AETest CreateTable                )
       , ae (mk_aet "CreateTableResponse"                :: AETest CreateTableResponse        ) 
 --      , ae (mk_aet "Item"     :: AETest Item        )
