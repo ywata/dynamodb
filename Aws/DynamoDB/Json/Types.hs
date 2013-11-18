@@ -13,6 +13,7 @@ module Aws.DynamoDB.Json.Types
       , AttributeDefinition(..)
       , AttributeName(..)
 --      , AttributeToGet(..)
+      , DDouble(..)
       , AttributeType(..)
       , AttributeValue(..)
       , AttributeValueUpdate(..)
@@ -88,8 +89,9 @@ type ItemCollectionKey = Map.Map T.Text AttributeValue
 
 type DateTime = DDouble
 
-newtype DDouble = DDouble Double
-                   deriving(Show)
+newtype  DDouble =  DDouble Double
+                    deriving(Show)
+
 instance ToJSON DDouble where
   toJSON (DDouble a) = Number (D a)
 instance FromJSON DDouble where
@@ -99,19 +101,25 @@ instance FromJSON DDouble where
 instance QC.Arbitrary DDouble where
   arbitrary = DDouble <$> QC.arbitrary
 
-epsilon = 0.0001
+
+
 instance Eq DDouble where
   (DDouble a) == (DDouble b) = cmpDouble a b
-    where
-      -- a bit strange but easy solution
-      cmpDouble :: Double -> Double -> Bool
-      cmpDouble a b
-        | abs a < epsilon && abs b < epsilon  = True
-        | abs a < epsilon && abs b >= epsilon = False
-        | abs a >= epsilon && abs b < epsilon = False
-        | abs (a - b) / abs b < epsilon       = True
-        | otherwise                           = False
 
+
+cmpDouble :: RealFloat a => a -> a -> Bool
+cmpDouble a b -- = relDif a b
+  | relDif a b <= epsilon  = True -- This is not a good choice but better than the previous one.
+  | otherwise                  = False
+  where
+    epsilon = (10.0)**(-15.0)
+
+{- http://www.jpcert.or.jp/sc-rules/c-flp35-c.html -}
+relDif :: RealFloat a => a -> a -> a
+relDif a b
+  | m == 0.0  = 0.0
+  | otherwise = (abs (a - b)) / (max (abs a) (abs b))
+  where m = max (abs a) (abs b)
 
 
 

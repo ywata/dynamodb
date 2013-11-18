@@ -9,8 +9,6 @@ import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text                      as T
 import           Data.String
 import qualified Data.Map                       as Map
---import           Data.Aeson
---import           Data.Aeson.Types
 
 import qualified Aws.DynamoDB as D
 import Network.HTTP.Conduit

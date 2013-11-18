@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Aws.ElasticTranscoder.Json.Test
+module Aws.DynamoDB.Json.Test
     ( 
       testAll
     , testAllVerbose
@@ -42,9 +42,8 @@ simple_tests =
 
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue           )
 
+
 --      , ae (mk_aet "Item"     :: AETest Item        )
-
-
 
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate     )
       , ae (mk_aet "ActionType"                         :: AETest ActionType               )
@@ -53,7 +52,8 @@ simple_tests =
       , ae (mk_aet "Condition"                          :: AETest Condition           )        
       , ae (mk_aet "ConsistentRead"                     :: AETest ConsistentRead           )
       , ae (mk_aet "ConsumedCapacity"                   :: AETest ConsumedCapacity         )
-      , ae (mk_aet "DateTime"     :: AETest DateTime        )        
+      , ae (mk_aet "DateTime"     :: AETest DateTime        )
+      , ae (mk_aet "DDouble"                       :: AETest DDouble           )
       , ae (mk_aet "ExpectedAttributeValue"             :: AETest ExpectedAttributeValue)
       , ae (mk_aet "IndexName"                          :: AETest IndexName                )
 

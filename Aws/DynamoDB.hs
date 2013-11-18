@@ -1,11 +1,12 @@
 module Aws.DynamoDB
     ( module Aws.DynamoDB.Commands
     , module Aws.DynamoDB.Core
+    , module Aws.DynamoDB.Json.Test
     ) where
 
 import Aws.DynamoDB.Commands
 import Aws.DynamoDB.Core
-
+import Aws.DynamoDB.Json.Test
 -- $use
 --
 -- A brief example createJob program
