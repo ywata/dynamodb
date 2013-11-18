@@ -40,8 +40,8 @@ simple_tests =
     [
 
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
-      , ae (mk_aet "CreateTable"                          :: AETest CreateTable                )
-      
+      , ae (mk_aet "CreateTable"                        :: AETest CreateTable                )
+      , ae (mk_aet "CreateTableResponse"                :: AETest CreateTableResponse        ) 
 --      , ae (mk_aet "Item"     :: AETest Item        )
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
       , ae (mk_aet "ActionType"                         :: AETest ActionType                 )

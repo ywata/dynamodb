@@ -61,10 +61,19 @@ instance FromJSON CreateTableResult where
     CreateTableResult <$> v .: "TableDescription" 
   parseJSON _ = mzero
 
+
 data CreateTableResponse
     = CreateTableResponse
         { ctrTableDescription :: TableDescription}
     deriving (Show,Eq)
+instance ToJSON   CreateTableResponse where
+  toJSON(CreateTableResponse a) = object["TableDescription" .= a]
+instance FromJSON CreateTableResponse where
+  parseJSON (Object v) =
+    CreateTableResponse <$> v .: "TableDescription" 
+  parseJSON _ = mzero
+instance QC.Arbitrary CreateTableResponse where
+  arbitrary = CreateTableResponse <$> QC.arbitrary
 
 -- Checked
 createTable :: [AttributeDefinition]
