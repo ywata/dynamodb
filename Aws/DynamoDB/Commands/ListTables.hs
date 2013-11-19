@@ -13,7 +13,7 @@ import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Text as T
-
+import qualified Test.QuickCheck as QC
 
 data ListTables
     = ListTables{
@@ -28,15 +28,27 @@ instance ToJSON ListTables where
       "ExclusiveStartTableName" .= a
       , "Limit"                 .= b
       ]
-
-
+instance FromJSON ListTables where
+  parseJSON (Object v) = ListTables <$>
+                         v .: "ExclusiveStartTableName" <*>
+                         v .: "Limit"
+instance QC.Arbitrary ListTables where
+  arbitrary = ListTables <$> QC.arbitrary <*>  QC.arbitrary
 data ListTablesResponse
     = ListTablesResponse {
-      lastEvaluatedTableName::Maybe TableName
-      , tableNames::[TableName]
-                         }
-    deriving (Show,Eq)
-
+{-      lastEvaluatedTableName::Maybe TableName
+      ,-} tableNames::[TableName]
+      }deriving (Show,Eq)
+instance ToJSON ListTablesResponse where
+  toJSON (ListTablesResponse {-a-} b) = object[
+{-    "lastEvaluatedTableName" .= a
+    , -} "tableNames"           .= b]
+instance FromJSON ListTablesResponse where
+  parseJSON (Object v) = ListTablesResponse <$>
+{-                         v .:? "LastEvaluatedTableName" <*> -}
+                         v .: "TableNames"
+instance QC.Arbitrary ListTablesResponse where
+  arbitrary = ListTablesResponse <$> QC.arbitrary {- <*> QC.arbitrary-}
 
 listTables :: Maybe TableName -> Maybe Int -> ListTables
 listTables a b= ListTables a b
