@@ -5,6 +5,7 @@
 module Aws.DynamoDB.Commands.DescribeTable
     ( DescribeTable(..)
     , DescribeTableResponse(..)
+    , DescribeTableResult(..)      
     , describeTable
     ) where
 
@@ -13,6 +14,7 @@ import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Text as T
+import qualified Test.QuickCheck as QC
 
 
 data DescribeTable
@@ -28,10 +30,23 @@ instance ToJSON DescribeTable where
       "TableName" .= a
       ]
 
+instance FromJSON DescribeTable where
+  parseJSON (Object v) = DescribeTable <$> v .: "TableName"
+  
+instance QC.Arbitrary DescribeTable where
+  arbitrary = DescribeTable <$> QC.arbitrary 
 
 data DescribeTableResponse
-    = DescribeTableResponse {table::TableDescription}
+    = DescribeTableResponse {dtrTableDescription::TableDescription}
     deriving (Show,Eq)
+instance ToJSON DescribeTableResponse where
+  toJSON (DescribeTableResponse a) = object[
+    "Table" .= a]
+instance FromJSON DescribeTableResponse where
+  parseJSON (Object v) = DescribeTableResponse <$>
+                         v .: "Table"
+instance QC.Arbitrary DescribeTableResponse where  
+  arbitrary = DescribeTableResponse <$> QC.arbitrary
 
 
 describeTable :: TableName -> DescribeTable
@@ -51,13 +66,17 @@ instance SignQuery DescribeTable where
 
 data DescribeTableResult =
   DescribeTableResult{
-    dtrTable::TableDescription
+    tableDescription::TableDescription
     }deriving(Show, Eq)
+instance ToJSON DescribeTableResult where
+  toJSON (DescribeTableResult a) = object[ "Table" .= a]
 instance FromJSON DescribeTableResult where
  parseJSON (Object v) =
    DescribeTableResult <$>
    v .: "Table"
-
+instance QC.Arbitrary DescribeTableResult where
+  arbitrary = DescribeTableResult <$> QC.arbitrary
+  
 
 instance ResponseConsumer DescribeTable DescribeTableResponse where
 

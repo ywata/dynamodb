@@ -43,7 +43,7 @@ lt = do
                                D.listTables Nothing  (Just 5)
   return rsp
 
-{-
+
 
 
 dsc = do
@@ -53,7 +53,7 @@ dsc = do
                                D.describeTable "Txx"
 
   return rsp
-
+{-
 get = do
   cfg <- Aws.baseConfiguration
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $

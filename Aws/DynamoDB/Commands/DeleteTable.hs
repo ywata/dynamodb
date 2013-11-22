@@ -37,7 +37,7 @@ instance QC.Arbitrary DeleteTable where
 
 data DeleteTableResponse
     = DeleteTableResponse {
-      dtrTableDescription::TableDescription
+      deltrTableDescription::TableDescription
       }deriving (Show,Eq)
 instance ToJSON   DeleteTableResponse where
   toJSON(DeleteTableResponse a) = object["TableDescription" .= a]

@@ -40,15 +40,7 @@ simple_tests =
     [
 
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
-      , ae (mk_aet "ListTables"                         :: AETest ListTables                  )
-      , ae (mk_aet "ListTablesResponse"                 :: AETest ListTablesResponse          ) 
-      
-      , ae (mk_aet "DeleteTable"                        :: AETest DeleteTable                )
-      , ae (mk_aet "DeleteTableResponse"                :: AETest DeleteTableResponse        ) 
-      
-      , ae (mk_aet "CreateTable"                        :: AETest CreateTable                )
-      , ae (mk_aet "CreateTableResponse"                :: AETest CreateTableResponse        ) 
---      , ae (mk_aet "Item"     :: AETest Item        )
+
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
       , ae (mk_aet "ActionType"                         :: AETest ActionType                 )
       , ae (mk_aet "AttributeDefinition"                :: AETest AttributeDefinition        )
@@ -58,8 +50,10 @@ simple_tests =
       , ae (mk_aet "ConsumedCapacity"                   :: AETest ConsumedCapacity           )
       , ae (mk_aet "DateTime"                           :: AETest DateTime                   )
       , ae (mk_aet "DDouble"                            :: AETest DDouble                    )
+      , ae (mk_aet "Expected"                           :: AETest Expected                   )
       , ae (mk_aet "ExpectedAttributeValue"             :: AETest ExpectedAttributeValue     )
       , ae (mk_aet "IndexName"                          :: AETest IndexName                  )
+      , ae (mk_aet "Item"                               :: AETest Item                       )
       , ae (mk_aet "ItemCollectionMetrics"              :: AETest ItemCollectionMetrics      )
       , ae (mk_aet "KeyConditions"                      :: AETest KeyConditions              )
       , ae (mk_aet "KeyType"                            :: AETest KeyType                    )
@@ -81,6 +75,23 @@ simple_tests =
       , ae (mk_aet "TableStatus"                        :: AETest TableStatus                )                        
       , ae (mk_aet "TableDescription"                   :: AETest TableDescription           ) 
       , ae (mk_aet "Value"                              :: AETest Value                      )
+
+
+        {-- API Layer JSON data test Tables  --}
+      , ae (mk_aet "CreateTable"                        :: AETest CreateTable                )
+      , ae (mk_aet "CreateTableResponse"                :: AETest CreateTableResponse        )
+      , ae (mk_aet "DeleteTable"                        :: AETest DeleteTable                )
+      , ae (mk_aet "DeleteTableResponse"                :: AETest DeleteTableResponse        ) 
+      , ae (mk_aet "DescribeTable"                      :: AETest DescribeTable              )
+      , ae (mk_aet "DescribeTableResponse"              :: AETest DescribeTableResponse      )
+      , ae (mk_aet "ListTables"                         :: AETest ListTables                 )
+      , ae (mk_aet "ListTablesResponse"                 :: AETest ListTablesResponse         )
+
+      {-- Get/Put Items--}
+      , ae (mk_aet "GetItem"                            :: AETest GetItem                    )
+      , ae (mk_aet "GetItemResponse"                    :: AETest GetItemResponse           )
+      , ae (mk_aet "PutItem"                            :: AETest PutItem                    )
+      , ae (mk_aet "PutItemResponse"                    :: AETest PutItemResponse            )
 
     ]
   where

@@ -14,38 +14,76 @@ import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Map  as Map
 import qualified Data.Text as T
-
+import qualified Test.QuickCheck as QC
 
 data GetItem
     = GetItem
         {
-          giKey                :: Keys              -- Yes
+          giKey                :: Keys             -- Yes
           , giTableName        :: TableName        -- Yes          
           , giAttributesToGet  :: Maybe [T.Text]   -- No
           , giConsistentRead   :: Maybe Bool       -- No
           , giReturnConsumedCapacity :: Maybe Bool -- No
-
         }
     deriving (Show, Eq)
 
 instance ToJSON GetItem where
   toJSON (GetItem a b c d e) =
     object[
-      "AttributesToGet"  .= a
-      , "ConsistentRead" .= b
-      , "Key"            .= c
-      , "ReturnConsumedCapacity" .= d
-      , "TableName"              .= e
-      ]
+      "Key"                      .= a
+      , "TableName"              .= b        
+      , "AttributesToGet"        .= c
+      , "ConsistentRead"         .= d
+      , "ReturnConsumedCapacity" .= e
 
-data GetItemResult = GetItemResult{}
+      ]
+instance FromJSON GetItem where
+  parseJSON (Object v) = GetItem <$>
+                         v .: "Key" <*>
+                         v .: "TableName" <*>
+                         v .:? "AttributesToGet" <*>
+                         v .:? "ConsistentRead"  <*>
+                         v .:? "ReturnConsumedCapacity"
+                         
+instance QC.Arbitrary GetItem where
+  arbitrary = GetItem <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary
+
+data GetItemResult = GetItemResult{
+  consumedCapacity :: Maybe ConsumedCapacity,
+  item             :: Maybe Item
+  } deriving(Show, Eq)
+
 instance FromJSON GetItemResult where
- parseJSON _ = return GetItemResult
+ parseJSON (Object v) = GetItemResult <$>
+                        v .:? "ConsumedCapacity" <*>
+                        v .:? "Item"
+
 
 data GetItemResponse
-    = GetItemResponse {}
-    deriving (Show,Eq)
+    = GetItemResponse {
+      girConsumedCapacity :: Maybe ConsumedCapacity,
+      girItem             :: Maybe Item
+      }deriving (Show,Eq)
 
+instance ToJSON GetItemResponse where
+  toJSON (GetItemResponse a b) = object[
+    "ConsumedCapacity" .= a
+    , "Item"           .= b
+    ]
+instance FromJSON GetItemResponse where
+ parseJSON (Object v) = GetItemResponse <$>
+                        v .:? "ConsumedCapacity" <*>
+                        v .:? "Item"
+instance QC.Arbitrary GetItemResponse where
+  arbitrary = GetItemResponse <$>
+              QC.arbitrary <*>
+              QC.arbitrary
+              
 
 --getItem :: GetItem
 getItem a b c d e = GetItem a b c d e 
@@ -71,7 +109,7 @@ instance ResponseConsumer GetItem GetItemResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (GetItemResult {}) = GetItemResponse{}
+        cnv (GetItemResult a b) = GetItemResponse a b
 
 instance Transaction GetItem GetItemResponse
 

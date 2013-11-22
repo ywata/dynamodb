@@ -30,28 +30,28 @@ instance ToJSON ListTables where
       ]
 instance FromJSON ListTables where
   parseJSON (Object v) = ListTables <$>
-                         v .: "ExclusiveStartTableName" <*>
-                         v .: "Limit"
+                         v .:? "ExclusiveStartTableName" <*>
+                         v .:? "Limit"
 instance QC.Arbitrary ListTables where
   arbitrary = ListTables <$> QC.arbitrary <*>  QC.arbitrary
 data ListTablesResponse
     = ListTablesResponse {
-{-      lastEvaluatedTableName::Maybe TableName
-      ,-} tableNames::[TableName]
+      lastEvaluatedTableName :: Maybe TableName
+      , tableNames           :: Maybe [TableName]
       }deriving (Show,Eq)
 instance ToJSON ListTablesResponse where
-  toJSON (ListTablesResponse {-a-} b) = object[
-{-    "lastEvaluatedTableName" .= a
-    , -} "tableNames"           .= b]
+  toJSON (ListTablesResponse a b) = object[
+    "LastEvaluatedTableName" .= a
+    ,  "TableNames"          .= b]
 instance FromJSON ListTablesResponse where
   parseJSON (Object v) = ListTablesResponse <$>
-{-                         v .:? "LastEvaluatedTableName" <*> -}
-                         v .: "TableNames"
+                         v .:? "LastEvaluatedTableName" <*> {--}
+                         v .:? "TableNames"
 instance QC.Arbitrary ListTablesResponse where
-  arbitrary = ListTablesResponse <$> QC.arbitrary {- <*> QC.arbitrary-}
+  arbitrary = ListTablesResponse <$> QC.arbitrary  <*> QC.arbitrary
 
 listTables :: Maybe TableName -> Maybe Int -> ListTables
-listTables a b= ListTables a b
+listTables a b = ListTables a b
 
 instance SignQuery ListTables where
 
@@ -68,13 +68,22 @@ instance SignQuery ListTables where
 data ListTablesResult =
   ListTablesResult{
     ltrlastEvaluatedTableName :: Maybe TableName
-    , ltrTableNames :: [TableName]
-                  }deriving(Show, Eq)
+    , ltrTableNames           :: Maybe [TableName]
+    }deriving(Show, Eq)
+instance ToJSON ListTablesResult where
+  toJSON (ListTablesResult a b) = object[
+    "LastEvaluatedTableName" .= a
+    , "TableNames"           .= b]
 instance FromJSON ListTablesResult where
  parseJSON (Object v) =
    ListTablesResult <$>
    v .:? "LastEvaluatedTableName" <*>
    v .: "TableNames"
+instance QC.Arbitrary ListTablesResult where
+  arbitrary = ListTablesResult <$>
+              QC.arbitrary <*>
+              QC.arbitrary 
+
 
 instance ResponseConsumer ListTables ListTablesResponse where
 

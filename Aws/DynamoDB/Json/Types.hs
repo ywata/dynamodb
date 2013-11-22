@@ -68,9 +68,12 @@ import           Data.String
 --import           Test.QuickCheck.Arbitrary.ToolShed.Test.QuickCheck.Arbitrary.Map
 --import           ToolShed.Test.QuickCheck.Arbitrary.Map
 
-import qualified Data.Map.Strict                as Map
+import qualified Data.Map.Lazy                  as Map
+import qualified Data.HashMap.Lazy            as H
+
 import           Data.Attoparsec.Number         (Number(..))
 import           Data.Aeson                     hiding (Value)
+--import qualified Data.Aeson.Functions           as A (mapHashKey)
 import qualified Data.Aeson.Types               as A 
 import qualified Data.Text                      as T
 import qualified Test.QuickCheck                as QC
@@ -355,21 +358,7 @@ instance FromJSON ExpectedAttributeValue where
 instance QC.Arbitrary ExpectedAttributeValue where  
   arbitrary = ExpectedAttributeValue <$> QC.arbitrary <*> QC.arbitrary
 
---
--- | ItemCollectionMetrics --tested
---
-data ItemCollectionMetrics = ItemCollectionMetrics{
-  icmItemCollectionKey     :: Maybe ItemCollectionKey
-  , icmSizeEstimateRangeGB :: Maybe [DDouble]
-  }deriving(Show, Eq)
-instance ToJSON  ItemCollectionMetrics where
-  toJSON (ItemCollectionMetrics a b) = object ["ItemCollectionKey" .= a, "SizeEstimateRangeGB".=b]
-instance FromJSON ItemCollectionMetrics where
-  parseJSON (Object v) =
-    ItemCollectionMetrics     <$>
-    v .:? "ItemCollectionKey" <*> v .:? "SizeEstimateRangeGB"
-instance QC.Arbitrary ItemCollectionMetrics where
-  arbitrary = ItemCollectionMetrics <$> QC.arbitrary <*> QC.arbitrary
+
 
 --
 -- | KeyConditions  -- tested
@@ -442,6 +431,24 @@ instance FromJSON KeyType where
   parseJSON = json_str_map_p keyType_m
 instance QC.Arbitrary KeyType where
   arbitrary = QC.elements [minBound..maxBound]
+
+
+--
+-- | ItemCollectionMetrics --tested
+--
+data ItemCollectionMetrics = ItemCollectionMetrics{
+  icmItemCollectionKey     :: Maybe ItemCollectionKey
+  , icmSizeEstimateRangeGB :: Maybe [DDouble]
+  }deriving(Show, Eq)
+instance ToJSON  ItemCollectionMetrics where
+  toJSON (ItemCollectionMetrics a b) = object ["ItemCollectionKey" .= a, "SizeEstimateRangeGB".=b]
+instance FromJSON ItemCollectionMetrics where
+  parseJSON (Object v) =
+    ItemCollectionMetrics     <$>
+    v .:? "ItemCollectionKey" <*> v .:? "SizeEstimateRangeGB"
+instance QC.Arbitrary ItemCollectionMetrics where
+  arbitrary = ItemCollectionMetrics <$> QC.arbitrary <*> QC.arbitrary
+
 
 
 --
@@ -776,11 +783,34 @@ data Item = Item{
   iItem :: Map.Map T.Text Value -- Key ?
   }deriving(Show, Eq)
 instance ToJSON Item where
-  toJSON (Item a) = toJSON a
+  toJSON (Item a) = object["Item" .= toJSON a]
 instance FromJSON Item where
-  parseJSON (Object v) = undefined
+  parseJSON (Object v) = Item <$> v .: "Item"
+  parseJSON _          = mzero
 instance QC.Arbitrary Item where
   arbitrary = Item <$> QC.arbitrary
+
+
+objectToMap::Object -> Map.Map T.Text Value 
+objectToMap = Map.fromList . map (\(x, y) -> (x, fromJust y)) . filter sndNothing . map conv . H.toList
+  where
+    conv::(T.Text, A.Value) -> (T.Text, Maybe Value)
+    conv (a, v) = (a, decode . encode . toJSON $ v)
+    sndNothing (a, Nothing) = False
+    sndNothing _            = True
+
+
+
+--    assoc = H.toList o
+a = Item $ Map.fromList [("t", ValueN 1), ("a",ValueS "S")]
+a'' =  Map.fromList [("t", ValueN 1), ("a",ValueS "S")]
+b = toJSON a
+c = encode b
+d1 = decode c :: Maybe A.Value
+d2 = decode c :: Maybe Object
+d3 = decode c :: Maybe Item
+e  = Map.lookup "t" (iItem a)
+
 
 newtype ExclusiveTableName = ExclusiveTableName{_ExclusiveTableName::TableName}
                            deriving(Show, Eq)
@@ -788,12 +818,18 @@ instance ToJSON ExclusiveTableName where
   toJSON ex = object[ "ExclusiveTableName" .= _ExclusiveTableName ex]
 
 data Expected = Expected{
-  eExpected:: Map.Map T.Text (Maybe Exists, Maybe Value)
+  eExpected :: ExpectedAttributeValue
   }deriving(Show, Eq)
 
 instance ToJSON Expected where
-  toJSON (Expected mp) = object[] -- TODO
-
+  toJSON (Expected mp) = object[
+    "Expected" .= mp
+    ]
+instance FromJSON Expected where
+  parseJSON(Object v) = Expected <$>
+                        v .: "Expected"
+instance QC.Arbitrary Expected where
+  arbitrary = Expected <$> QC.arbitrary
 
 data Exists = Exists Bool
               deriving(Show, Eq)
@@ -927,4 +963,5 @@ two gen = (,) <$> gen <*> gen
 
 ---------
 instance (Ord k, QC.Arbitrary k, QC.Arbitrary v) => QC.Arbitrary (Map.Map k v)      where
-        arbitrary       = Map.fromList <$> QC.arbitrary
+  arbitrary       = Map.fromList <$> QC.arbitrary
+

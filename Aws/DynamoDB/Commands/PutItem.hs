@@ -18,6 +18,8 @@ import qualified Data.Map as Map
 
 import qualified Data.Text as T
 import           Aws.DynamoDB.Json.Types
+import qualified Test.QuickCheck as QC
+
 
 data PutItem
     = PutItem
@@ -36,17 +38,56 @@ data PutItem
 instance ToJSON PutItem where
   toJSON (PutItem a b c d e f) =
     object[
-      "Expected" .= a
-      , "Item"   .= b
-      , "ReturnConsumedCapacity" .= c
-      , "ReturnItemCollectionMetrics" .= d
-      , "ReturnValues" .= e
-      , "TableName" .= f
-      ]
+      "Item"        .= a
+      , "TableName" .= b
+      , "Expected"  .= c
+      , "ReturnConsumedCapacity" .= d
+      , "ReturnItemCollectionMetrics" .= e
+      , "ReturnValues" .= f
 
-data PutItemResponse
-    = PutItemResponse {}
-    deriving (Show,Eq)
+      ]
+instance FromJSON PutItem where
+  parseJSON (Object v) = PutItem <$>
+                         v .: "Item"       <*>  
+                         v .:  "TableName" <*>  
+                         v .:? "Expected"  <*>
+                         v .:? "ReturnConsumedCapacity" <*>
+                         v .:? "ReturnItemCollectionMetrics" <*>
+                         v .:? "ReturnValues"
+
+  parseJSON _          = mzero
+
+instance QC.Arbitrary PutItem where
+  arbitrary = PutItem <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary
+
+data PutItemResponse = PutItemResponse{
+  pirAttributes              :: Maybe Keys
+  , pirConsumedCapacity      :: Maybe ConsumedCapacity
+  , pirItemCollectionMetrics :: Maybe ItemCollectionMetrics
+  }deriving(Show, Eq)
+instance ToJSON PutItemResponse where
+  toJSON(PutItemResponse a b c) = object[
+    "Attributes"              .= a
+    , "ConsumedCapacity"      .= b
+    , "ItemCollectionMetrics" .= c
+    ]
+instance QC.Arbitrary PutItemResponse where
+  arbitrary = PutItemResponse <$> 
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary
+instance FromJSON PutItemResponse where
+  parseJSON (Object v) =
+    PutItemResponse <$>
+    v .:? "Attributes"             <*>
+    v .:? "ConsumedCapacity"       <*>
+    v .:? "ItemCollectionMetrics"    
 
 putItem:: Item
           -> TableName
@@ -59,9 +100,9 @@ putItem a b c d e f= PutItem a b c d e f
 
 
 data PutItemResult = PutItemResult{
-  pirAttributes::Maybe Keys
-  , pirConsumedCapacity :: Maybe ConsumedCapacity
-  , pirItemCollectionMetrics :: Maybe ItemCollectionMetrics
+  attributes              :: Maybe Keys
+  , consumedCapacity      :: Maybe ConsumedCapacity
+  , itemCollectionMetrics :: Maybe ItemCollectionMetrics
   }deriving(Show, Eq)
 instance FromJSON PutItemResult where
   parseJSON (Object v) =
@@ -90,7 +131,7 @@ instance ResponseConsumer PutItem PutItemResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (PutItemResult {}) = PutItemResponse{}
+        cnv (PutItemResult a b c) = PutItemResponse a b c
 
 
 instance Transaction PutItem PutItemResponse
