@@ -30,6 +30,7 @@ import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Text as T
+import qualified Test.QuickCheck as QC
 
 
 data $Command
@@ -42,15 +43,28 @@ instance ToJSON $Command where
   toJSON ($Command) =
     object[
       ]
+instance FromJSON $Command where
+    parseJSON (Object v) = $Command <\$>
+instance QC.Arbitrary $Command where
+    arbitrary = $Command <\$>
+
 
 
 data $CommandResponse
     = $CommandResponse {}
     deriving (Show,Eq)
+instance ToJSON $CommandResponse where
+  toJSON ($Command) =
+    object[
+      ]
+instance FromJSON $CommandResponse where
+    parseJSON (Object v) = $CommandResponse <\$>
+instance QC.Arbitrary $CommandResponse where
+    arbitrary = $CommandResponse <\$>
 
 
 $command \:\: $Command
-$command= $Command
+$command = $Command
 
 
 
@@ -66,7 +80,8 @@ instance SignQuery $Command where
         , ddbqBody    = Just \$ toJSON \$ a
         }
 
-data $CommandResult = $CommandResult\{\}
+data $CommandResult = $CommandResult\{\} deriving(Show, Eq)
+
 instance FromJSON $CommandResult where
  parseJSON _ = return $CommandResult
 
