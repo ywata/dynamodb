@@ -12,7 +12,7 @@ module Aws.DynamoDB.Json.Types
       ActionType(..)
       , AttributeDefinition(..)
       , AttributeName(..)
-      , Attributes(..)        
+      , Attributes(..)
       , AttributesToGet(..)
       , DDouble(..)
       , AttributeType(..)
@@ -21,16 +21,17 @@ module Aws.DynamoDB.Json.Types
       , Condition(..)
       , ConsumedCapacity(..)
       , ConsistentRead(..)
+      , Count(..)
       , DateTime(..)
       , ExclusiveTableName(..)
       , ExclusiveStartKey(..)
       , Expected(..)
-      , ExpectedAttributeValue(..)        
+      , ExpectedAttributeValue(..)
       , DdbServiceError(..)
       , ItemCollectionMetrics(..)
       , IndexName(..)
       , Item(..)
-      , Items(..)        
+      , Items(..)
       , Key(..)
       , KeyConditions(..)
 --      , KeyValue(..)
@@ -47,12 +48,13 @@ module Aws.DynamoDB.Json.Types
       , Projection(..)
       , ProjectionType(..)
       , ProvisionedThroughput(..)
-      , ProvisionedThroughputDescription(..)        
+      , ProvisionedThroughputDescription(..)
 
       , ReturnConsumedCapacity(..)
       , ReturnItemCollectionMetrics(..)
       , ReturnValues(..)
-      , ScanFilter(..)        
+      , ScanFilter(..)
+      , ScannedCount(..)
       , Select(..)
       , ScanIndexForward(..)
       , TableDescription(..)
@@ -94,6 +96,25 @@ type ItemCollectionKey = Map.Map T.Text AttributeValue
 
 
 type DateTime = DDouble
+
+newtype Count = Count Int
+                deriving(Show, Eq)
+instance ToJSON Count where
+  toJSON (Count c) = object["Count" .= c]
+instance FromJSON Count where
+  parseJSON (Object v) = Count <$> v .: "Count"
+instance QC.Arbitrary Count where
+  arbitrary = Count <$> QC.arbitrary
+
+newtype ScannedCount = ScannedCount Int
+                deriving(Show, Eq)
+instance ToJSON ScannedCount where
+  toJSON (ScannedCount c) = object["ScannedCount" .= c]
+instance FromJSON ScannedCount where
+  parseJSON (Object v) = ScannedCount <$> v .: "ScannedCount"
+instance QC.Arbitrary ScannedCount where
+  arbitrary = ScannedCount <$> QC.arbitrary
+
 
 newtype  DDouble =  DDouble Double
                     deriving(Show)

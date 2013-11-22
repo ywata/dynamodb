@@ -38,7 +38,6 @@ testBase b = mapM_ part simple_tests
 simple_tests :: [SimpleTest]
 simple_tests =
     [
-
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
       , ae (mk_aet "Attributes"                         :: AETest Attributes                 )      
       , ae (mk_aet "AttributesToGet"                    :: AETest AttributesToGet            )
@@ -49,6 +48,7 @@ simple_tests =
       , ae (mk_aet "Condition"                          :: AETest Condition                  )        
       , ae (mk_aet "ConsistentRead"                     :: AETest ConsistentRead             )
       , ae (mk_aet "ConsumedCapacity"                   :: AETest ConsumedCapacity           )
+      , ae (mk_aet "Count"                              :: AETest Count                      )        
       , ae (mk_aet "DateTime"                           :: AETest DateTime                   )
       , ae (mk_aet "DDouble"                            :: AETest DDouble                    )
       , ae (mk_aet "Expected"                           :: AETest Expected                   )
@@ -75,6 +75,7 @@ simple_tests =
       , ae (mk_aet "ReturnConsumedCapacity"             :: AETest ReturnConsumedCapacity     )
       , ae (mk_aet "ReturnItemCollectionMetrics"        :: AETest ReturnItemCollectionMetrics)
       , ae (mk_aet "ReturnValues"                       :: AETest ReturnValues               )
+      , ae (mk_aet "ScannedCount"                       :: AETest ScannedCount               )
       , ae (mk_aet "ScanFIlter"                         :: AETest ScanFilter                 )
       , ae (mk_aet "TableStatus"                        :: AETest TableStatus                )                        
       , ae (mk_aet "TableDescription"                   :: AETest TableDescription           ) 
@@ -107,9 +108,9 @@ simple_tests =
       , ae (mk_aet "Query"                            :: AETest Query                        )
       , ae (mk_aet "QueryResponse"                      :: AETest QueryResponse              )
 
-{-      , ae (mk_aet "Scan"                             :: AETest Scan                         )
+      , ae (mk_aet "Scan"                             :: AETest Scan                         )
       , ae (mk_aet "ScanResponse"                     :: AETest ScanResponse                 )
--}
+
     ]
   where
     ae (AET st) = st

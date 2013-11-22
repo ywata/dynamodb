@@ -13,46 +13,104 @@ import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Text as T
+import qualified Test.QuickCheck as QC
 
-data NotYet = NotYet deriving(Show, Eq)
 data Scan
-    = Scan
-      {
-        sTableName                  :: TableName                     -- Yes
-          , sAttributeToGet         :: Maybe AttributeToGet
-          , sExclusiveStartKey      :: Maybe ExclusiveStartKey
-          , sLimit                  :: Maybe Limit
-          , sReturnConsumedCapacity :: Maybe ReturnConsumedCapacity
-          , sScanFilter             :: Maybe NotYet -- ScanFilter
-          , sSegment                :: Maybe Int
-          , sSelect                 :: Maybe Select
-          , sTotalSegments          :: Maybe Int
-        }
-    deriving (Show, Eq)
+    = Scan{
+      sTableName                :: TableName                     -- Yes
+      , sAttributesToGet        :: Maybe AttributesToGet         -- No
+      , sExclusiveStartKey      :: Maybe ExclusiveStartKey
+      , sLimit                  :: Maybe Limit
+      , sReturnConsumedCapacity :: Maybe ReturnConsumedCapacity
+      , sScanFilter             :: Maybe ScanFilter
+      , sSegment                :: Maybe Int
+      , sSelect                 :: Maybe Select
+      , sTotalSegments          :: Maybe Int
+      } deriving (Show, Eq)
+    
 
 instance ToJSON Scan where
   toJSON (Scan a b c d e f g h i) =
     object[
+      "TableName"                .= a
+      , "AttributesToGet"        .= b
+      , "ExclusiveStartKey"      .= c
+      , "Limit"                  .= d
+      , "ReturnConsumedCapacity" .= e
+      , "ScanFilter"             .= f
+      , "Segment"                .= g
+      , "Select"                 .= h
+      , "TotalSements"           .= i
       ]
+instance FromJSON Scan where
+  parseJSON (Object v) = Scan <$>
+                         v .: "TableName" <*>
+                         v .: "AttributesToGet" <*>
+                         v .: "ExclusiveStartKey" <*>
+                         v .: "Limit" <*>
+                         v .: "ReturnConsumedCapacity" <*>
+                         v .: "ScanFilter" <*>
+                         v .: "Segment" <*>
+                         v .: "Select" <*>
+                         v .: "TotalSements"
+                         
+instance QC.Arbitrary Scan where
+  arbitrary = Scan <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary
 
 
 data ScanResponse
-    = ScanResponse {}
-    deriving (Show,Eq)
+    = ScanResponse {
+      srConsumedCapacity   :: Maybe ConsumedCapacity
+      , srCount            :: Maybe Count
+      , srItems            :: Maybe Items
+      , srLastEvaluatedKey :: Maybe LastEvaluatedKey
+      , srScannedCount     :: Maybe ScannedCount
+      } deriving (Show,Eq)
+instance ToJSON ScanResponse where
+  toJSON (ScanResponse a b c d e) = object[
+    "ConsumedCapacity"   .= a
+    , "Count"            .= b
+    , "Items"            .= c
+    , "LastEvaluatedKey" .= d
+    , "ScanResponse"     .= e
+    ]
 
+instance FromJSON ScanResponse where
+  parseJSON (Object v) = ScanResponse <$>
+                         v .: "ConsumedCapacity" <*>
+                         v .: "Count" <*>                         
+                         v .: "Items" <*>       
+                         v .: "LastEvaluatedKey" <*>
+                         v .: "ScanResponse"      
+
+instance QC.Arbitrary ScanResponse where  
+  arbitrary = ScanResponse <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary
 
 scan :: TableName
-        -> Maybe AttributeToGet
+        -> Maybe AttributesToGet
         -> Maybe ExclusiveStartKey
         -> Maybe Limit
         -> Maybe ReturnConsumedCapacity
-        -> Maybe NotYet
+        -> Maybe ScanFilter
         -> Maybe Int        
         -> Maybe Select
         -> Maybe Int
         -> Scan
 scan a b c d e f g h  = Scan a b c d e f g h 
-
 
 
 instance SignQuery Scan where
@@ -67,9 +125,21 @@ instance SignQuery Scan where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data ScanResult = ScanResult{}
+data ScanResult = ScanResult{
+  consumedCapacity   :: Maybe ConsumedCapacity
+  , count            :: Maybe Count
+  , items            :: Maybe Items
+  , lastEvaluatedKey :: Maybe LastEvaluatedKey
+  , scannedCount     :: Maybe ScannedCount
+  } deriving(Show, Eq)
 instance FromJSON ScanResult where
- parseJSON _ = return ScanResult
+ parseJSON (Object v) = ScanResult <$>
+                        v .: "ConsumedCapacity" <*>
+                        v .: "Coount" <*>
+                        v .: "Items" <*>
+                        v .: "LastEvaluatedKey" <*>
+                        v .: "ScannedCount" 
+                        
 
 instance ResponseConsumer Scan ScanResponse where
 
@@ -77,7 +147,7 @@ instance ResponseConsumer Scan ScanResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (ScanResult {}) = ScanResponse{}
+        cnv (ScanResult a b c d e) = ScanResponse a b c d e
 
 
 instance Transaction Scan ScanResponse
