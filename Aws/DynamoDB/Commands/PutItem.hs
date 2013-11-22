@@ -67,7 +67,7 @@ instance QC.Arbitrary PutItem where
               QC.arbitrary
 
 data PutItemResponse = PutItemResponse{
-  pirAttributes              :: Maybe Keys
+  pirAttributes              :: Maybe Key
   , pirConsumedCapacity      :: Maybe ConsumedCapacity
   , pirItemCollectionMetrics :: Maybe ItemCollectionMetrics
   }deriving(Show, Eq)
@@ -100,7 +100,7 @@ putItem a b c d e f= PutItem a b c d e f
 
 
 data PutItemResult = PutItemResult{
-  attributes              :: Maybe Keys
+  attributes              :: Maybe Key
   , consumedCapacity      :: Maybe ConsumedCapacity
   , itemCollectionMetrics :: Maybe ItemCollectionMetrics
   }deriving(Show, Eq)

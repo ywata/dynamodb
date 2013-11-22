@@ -40,8 +40,8 @@ simple_tests =
     [
 
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
-      , ae (mk_aet "UpdateTable"                        :: AETest UpdateTable                )
-      , ae (mk_aet "UpdateTableResponse"                :: AETest UpdateTableResponse        )
+      , ae (mk_aet "UpdateItem"                        :: AETest UpdateItem                )
+      , ae (mk_aet "UpdateItemResponse"                :: AETest UpdateItemResponse       )
 {-
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
       , ae (mk_aet "ActionType"                         :: AETest ActionType                 )
@@ -88,6 +88,8 @@ simple_tests =
       , ae (mk_aet "DescribeTableResponse"              :: AETest DescribeTableResponse      )
       , ae (mk_aet "ListTables"                         :: AETest ListTables                 )
       , ae (mk_aet "ListTablesResponse"                 :: AETest ListTablesResponse         )
+      , ae (mk_aet "UpdateTable"                        :: AETest UpdateTable                )
+      , ae (mk_aet "UpdateTableResponse"                :: AETest UpdateTableResponse        )
 
       {-- Get/Put Items--}
       , ae (mk_aet "GetItem"                            :: AETest GetItem                    )

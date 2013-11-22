@@ -29,7 +29,7 @@ module Aws.DynamoDB.Json.Types
       , ItemCollectionMetrics(..)
       , IndexName(..)
       , Item(..)
-      , Keys(..)
+      , Key(..)
       , KeyConditions(..)
 --      , KeyValue(..)
       , KeySchema(..)
@@ -399,18 +399,19 @@ instance QC.Arbitrary KeySchemaElement where
               QC.arbitrary <*>
               QC.arbitrary
 
+
 --
 -- | Keys -- tested
 --
-data Keys  = Keys (Map.Map T.Text Value)
+data Key  = Key (Map.Map T.Text Value)
            deriving (Show, Eq)
-instance  ToJSON Keys where
-  toJSON (Keys a)  = object["Keys" .= a]
-instance FromJSON Keys where
-  parseJSON (Object v) = Keys <$> v .: "Keys"
+instance  ToJSON Key where
+  toJSON (Key a)  = object["Keys" .= a]
+instance FromJSON Key where
+  parseJSON (Object v) = Key <$> v .: "Keys"
   parseJSON _          = mzero
-instance  QC.Arbitrary Keys where
-  arbitrary = Keys <$> QC.arbitrary
+instance  QC.Arbitrary Key where
+  arbitrary = Key <$> QC.arbitrary
 
 
 --  

@@ -13,27 +13,82 @@ import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Text as T
+import qualified Test.QuickCheck as QC
 
 
 data UpdateItem
     = UpdateItem
         {
+          uiKey                       :: Key
+          , uiTableName               :: TableName
+          , uiAttributeUpdates        :: Maybe AttributeValueUpdate
+          , uiExpected                :: Maybe Expected
+          , uiReturnConsumedCapacity  :: Maybe ReturnConsumedCapacity
+          , uiReturnCollectionMetrics :: Maybe ReturnItemCollectionMetrics
+          , uiReturnValue             :: Maybe ReturnValues
         }
     deriving (Show, Eq)
 
 instance ToJSON UpdateItem where
-  toJSON (UpdateItem) =
+  toJSON (UpdateItem a b c d e f g) =
     object[
+      "Key"                .= a
+      , "TableName"        .= b
+      , "AttributeUpdates" .= c
+      , "Expected"         .= d
+      , "ReturnConsumedCapacity" .= e
+      , "ReturnItemCollectionMetrics" .= f
+      , "ReturnValues"                .= g
       ]
+instance FromJSON UpdateItem where
+    parseJSON (Object v) = UpdateItem <$>
+                           v .: "Key"               <*>
+                           v .: "TableName"         <*>
+                           v .:? "AttributeUpdates" <*>
+                           v .:? "Expected"         <*>
+                           v .:? "ReturnConsumedCapacity" <*>
+                           v .:? "ReturnItemCollectionMetrics" <*>
+                           v .:? "ReturnValues"
+instance QC.Arbitrary UpdateItem where
+    arbitrary = UpdateItem <$>
+                QC.arbitrary <*>
+                QC.arbitrary <*>
+                QC.arbitrary <*>
+                QC.arbitrary <*>
+                QC.arbitrary <*>
+                QC.arbitrary <*>
+                QC.arbitrary 
+
 
 
 data UpdateItemResponse
-    = UpdateItemResponse {}
-    deriving (Show,Eq)
+    = UpdateItemResponse {
+      uiAtributes               :: Maybe AttributeValueUpdate
+      , uiConsumedCapacity      :: Maybe ConsumedCapacity
+      , uiItemCollectionMetrics :: Maybe ItemCollectionMetrics
+      } deriving (Show,Eq)
+instance ToJSON UpdateItemResponse where
+  toJSON (UpdateItemResponse a b c) =
+    object[
+      "Attributes"              .= a
+      , "ConsumedCapacity"      .= b
+      , "ItemCollectionMetrics" .= c
+      ]
+
+instance FromJSON UpdateItemResponse where
+    parseJSON (Object v) = UpdateItemResponse <$>
+                           v .: "Attributes" <*>
+                           v .: "ConsumedCapacity" <*>
+                           v .: "ItemCollectionMetrics"
+instance QC.Arbitrary UpdateItemResponse where
+    arbitrary = UpdateItemResponse <$>
+                QC.arbitrary <*>
+                QC.arbitrary <*>
+                QC.arbitrary 
 
 
-updateItem :: UpdateItem
-updateItem= UpdateItem
+--updateItem :: UpdateItem
+updateItem a b c d e f = UpdateItem a b c d e f 
 
 
 
@@ -49,9 +104,18 @@ instance SignQuery UpdateItem where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data UpdateItemResult = UpdateItemResult{}
+data UpdateItemResult = UpdateItemResult{
+  attributes              :: Maybe AttributeValueUpdate
+  , consumedCapacity      :: Maybe ConsumedCapacity
+  , itemCollectionMetrics :: Maybe ItemCollectionMetrics
+  } deriving(Show, Eq)
+
 instance FromJSON UpdateItemResult where
- parseJSON _ = return UpdateItemResult
+ parseJSON (Object v) =  UpdateItemResult <$>
+                         v .: "Attributes" <*>
+                         v .: "ConsumedCapacity" <*>
+                         v .: "ItemCollectionMetrics"
+                         
 
 instance ResponseConsumer UpdateItem UpdateItemResponse where
 
@@ -59,7 +123,7 @@ instance ResponseConsumer UpdateItem UpdateItemResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (UpdateItemResult {}) = UpdateItemResponse{}
+        cnv (UpdateItemResult a b c) = UpdateItemResponse a b c
 
 
 instance Transaction UpdateItem UpdateItemResponse
