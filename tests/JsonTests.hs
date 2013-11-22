@@ -40,9 +40,8 @@ simple_tests =
     [
 
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
-      , ae (mk_aet "UpdateItem"                        :: AETest UpdateItem                )
-      , ae (mk_aet "UpdateItemResponse"                :: AETest UpdateItemResponse       )
-{-
+        
+      , ae (mk_aet "AttributesToGet"                    :: AETest AttributesToGet            )
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
       , ae (mk_aet "ActionType"                         :: AETest ActionType                 )
       , ae (mk_aet "AttributeDefinition"                :: AETest AttributeDefinition        )
@@ -54,13 +53,16 @@ simple_tests =
       , ae (mk_aet "DDouble"                            :: AETest DDouble                    )
       , ae (mk_aet "Expected"                           :: AETest Expected                   )
       , ae (mk_aet "ExpectedAttributeValue"             :: AETest ExpectedAttributeValue     )
+      , ae (mk_aet "ExclusiveStartKey"                  :: AETest ExclusiveStartKey          )
       , ae (mk_aet "IndexName"                          :: AETest IndexName                  )
       , ae (mk_aet "Item"                               :: AETest Item                       )
+      , ae (mk_aet "Items"                              :: AETest Items                      )
       , ae (mk_aet "ItemCollectionMetrics"              :: AETest ItemCollectionMetrics      )
       , ae (mk_aet "KeyConditions"                      :: AETest KeyConditions              )
       , ae (mk_aet "KeyType"                            :: AETest KeyType                    )
-      , ae (mk_aet "Keys"                               :: AETest Keys                       )
+      , ae (mk_aet "Keys"                               :: AETest Key                        )
       , ae (mk_aet "KeySchemeElement"                   :: AETest KeySchemaElement           )
+      , ae (mk_aet "LastEvaluatedKey"                   :: AETest LastEvaluatedKey           )        
       , ae (mk_aet "Limit"                              :: AETest Limit                      )
       , ae (mk_aet "LocalSecondaryIndex"                :: AETest LocalSecondaryIndex        )
       , ae (mk_aet "LocalSecondaryIndexDescription"     :: AETest LocalSecondaryIndexDescription)      
@@ -93,9 +95,18 @@ simple_tests =
 
       {-- Get/Put Items--}
       , ae (mk_aet "GetItem"                            :: AETest GetItem                    )
-      , ae (mk_aet "GetItemResponse"                    :: AETest GetItemResponse           )
+      , ae (mk_aet "GetItemResponse"                    :: AETest GetItemResponse            )
       , ae (mk_aet "PutItem"                            :: AETest PutItem                    )
       , ae (mk_aet "PutItemResponse"                    :: AETest PutItemResponse            )
+      , ae (mk_aet "UpdateItem"                         :: AETest UpdateItem                 )
+      , ae (mk_aet "UpdateItemResponse"                 :: AETest UpdateItemResponse         )
+
+      {- Query/Scan-}
+      , ae (mk_aet "Query"                            :: AETest Query                        )
+      , ae (mk_aet "QueryResponse"                      :: AETest QueryResponse              )
+
+{-      , ae (mk_aet "Scan"                             :: AETest Scan                         )
+      , ae (mk_aet "ScanResponse"                     :: AETest ScanResponse                 )
 -}
     ]
   where

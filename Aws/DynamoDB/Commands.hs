@@ -5,6 +5,7 @@ module Aws.DynamoDB.Commands
     , module Aws.DynamoDB.Commands.GetItem
     , module Aws.DynamoDB.Commands.ListTables
     , module Aws.DynamoDB.Commands.PutItem
+    , module Aws.DynamoDB.Commands.Query
     , module Aws.DynamoDB.Commands.UpdateTable
     , module Aws.DynamoDB.Commands.UpdateItem
     ) where
@@ -16,5 +17,6 @@ import           Aws.DynamoDB.Commands.ListTables
 import           Aws.DynamoDB.Commands.UpdateTable
 import           Aws.DynamoDB.Commands.GetItem
 import           Aws.DynamoDB.Commands.PutItem
+import           Aws.DynamoDB.Commands.Query
 import           Aws.DynamoDB.Commands.UpdateItem
 

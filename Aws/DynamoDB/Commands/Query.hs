@@ -13,13 +13,13 @@ import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Text as T
-
+import qualified Test.QuickCheck as QC
 
 data Query
     = Query
         {
           qTableName                :: TableName
-          , qAttributeToGet         :: Maybe AttributeToGet
+          , qAttributeToGet         :: Maybe AttributesToGet
           , qConsistentRead         :: Maybe ConsistentRead
           , qExclusiveStartKey      :: Maybe ExclusiveStartKey
           , qIndexName              :: Maybe IndexName
@@ -34,17 +34,75 @@ data Query
 instance ToJSON Query where
   toJSON (Query a b c d e f g h i j) =
     object[
+      "TableName"                .= a
+      , "AttributeToGet"         .= b
+      , "ConsistentRead"         .= c
+      , "ExclusiveStartKey"      .= d
+      , "IndexName"              .= e
+      , "KeyConditions"          .= f
+      , "Limit"                  .= g
+      , "ReturnConsumedCapacity" .= h
+      , "ScanIndexForward"       .= i
+      , "Select"                 .= j
       ]
-
+instance FromJSON Query where
+  parseJSON (Object v) = Query <$>
+                         v .: "TableName" <*>
+                         v .:? "AttributeToGet" <*>
+                         v .:? "ConsistentRead" <*>
+                         v .:? "ExclusiveStartKey" <*>
+                         v .:? "IndexName"<*>
+                         v .:? "KeyConditions"<*>
+                         v .:? "Limit"<*>
+                         v .:? "ReturnConsumedCapacity"<*>
+                         v .:? "ScanIndexForward"<*>
+                         v .:? "Select"
+instance QC.Arbitrary Query where
+  arbitrary = Query <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary
+                                                                      
 
 data QueryResponse
-    = QueryResponse {}
-    deriving (Show,Eq)
+    = QueryResponse {
+      qrConsumedCapacity :: ConsumedCapacity
+      , qrCount          :: Int
+      , qrItems          :: [Item]
+      , qrLastEvaluatedKey :: LastEvaluatedKey
+      }deriving (Show,Eq)
 
+instance ToJSON QueryResponse where
+  toJSON (QueryResponse a b c d) =
+    object[ "ConsumedCapacity"   .= a
+            , "Count"            .= b
+            , "Items"            .= c
+            , "LastEvaluatedKey" .= d]
+instance FromJSON QueryResponse where
+ parseJSON (Object v) = QueryResponse <$>
+                        v .: "ConsumedCapacity" <*>
+                        v .: "Count" <*>
+                        v .: "Items" <*>
+                        v .: "LastEvaluatedKey"
+instance QC.Arbitrary QueryResponse where
+  arbitrary = QueryResponse <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary
+              
+  
 
 --query :: Query
 query :: TableName
-      -> Maybe AttributeToGet
+      -> Maybe AttributesToGet
       -> Maybe ConsistentRead
       -> Maybe ExclusiveStartKey
       -> Maybe IndexName
@@ -70,9 +128,18 @@ instance SignQuery Query where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data QueryResult = QueryResult{}
+data QueryResult = QueryResult{
+  consumedCapacity :: ConsumedCapacity
+  , count          :: Int
+  , items          :: [Item]
+  , lastEvaluatedKey :: LastEvaluatedKey
+  } deriving(Show, Eq)
 instance FromJSON QueryResult where
- parseJSON _ = return QueryResult
+ parseJSON (Object v) = QueryResult <$>
+                        v .: "ConsumedCapacity" <*>
+                        v .: "Count" <*>
+                        v .: "Items" <*>
+                        v .: "LastEvaluatedKey"
 
 instance ResponseConsumer Query QueryResponse where
 
@@ -80,7 +147,7 @@ instance ResponseConsumer Query QueryResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (QueryResult {}) = QueryResponse{}
+        cnv (QueryResult a b c d) = QueryResponse a b c d
 
 
 instance Transaction Query QueryResponse

@@ -19,8 +19,8 @@ import qualified Test.QuickCheck as QC
 data GetItem
     = GetItem
         {
-          giKey                :: Key             -- Yes
-          , giTableName        :: TableName        -- Yes          
+          giKey                :: Key              -- Yes
+          , giTableName        :: TableName        -- Yes
           , giAttributesToGet  :: Maybe [T.Text]   -- No
           , giConsistentRead   :: Maybe Bool       -- No
           , giReturnConsumedCapacity :: Maybe Bool -- No

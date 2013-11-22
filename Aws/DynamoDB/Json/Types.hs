@@ -12,7 +12,7 @@ module Aws.DynamoDB.Json.Types
       ActionType(..)
       , AttributeDefinition(..)
       , AttributeName(..)
---      , AttributeToGet(..)
+      , AttributesToGet(..)
       , DDouble(..)
       , AttributeType(..)
       , AttributeValue(..)
@@ -29,12 +29,14 @@ module Aws.DynamoDB.Json.Types
       , ItemCollectionMetrics(..)
       , IndexName(..)
       , Item(..)
+      , Items(..)        
       , Key(..)
       , KeyConditions(..)
 --      , KeyValue(..)
       , KeySchema(..)
       , KeySchemaElement(..)
       , KeyType(..)
+      , LastEvaluatedKey(..)
       , Limit(..)
         
       , LocalSecondaryIndex(..)
@@ -153,6 +155,22 @@ instance FromJSON AttributeDefinition where
 instance QC.Arbitrary AttributeDefinition where
   arbitrary = AttributeDefinition <$> QC.arbitrary <*> QC.arbitrary
   
+--
+-- | AttributesToGet
+--
+data AttributesToGet = AttributesToGet{
+  attributesToGet :: [T.Text]
+  }deriving(Show, Eq)
+
+instance ToJSON AttributesToGet where
+  toJSON (AttributesToGet ts) = object[
+    "AttributesToGet" .= ts
+    ]
+instance FromJSON AttributesToGet where
+  parseJSON(Object v) = AttributesToGet <$>
+                        v .:  "AttributesToGet"
+instance QC.Arbitrary AttributesToGet where  
+  arbitrary = AttributesToGet <$> QC.arbitrary
 
 --
 -- | AttributeValue
@@ -339,8 +357,18 @@ instance FromJSON ComparisonOperator where
 instance QC.Arbitrary ComparisonOperator where
   arbitrary = QC.elements [minBound..maxBound]
 
-data ExclusiveStartKey = ExclusiveStartKey{}
-                         deriving(Show, Eq)
+data ExclusiveStartKey = ExclusiveStartKey{
+  exclusiveStartKey :: Map.Map T.Text Value
+  } deriving(Show, Eq)
+instance ToJSON ExclusiveStartKey where
+  toJSON (ExclusiveStartKey a) = object[
+    "ExclusiveStartKey" .= a
+    ]
+instance FromJSON ExclusiveStartKey where
+  parseJSON (Object v) = ExclusiveStartKey <$>
+                         v .: "ExclusiveStartKey"
+instance QC.Arbitrary ExclusiveStartKey where  
+  arbitrary = ExclusiveStartKey <$> QC.arbitrary
 
 --
 -- | ExpectedAttributeValue -- tested
@@ -374,8 +402,6 @@ instance FromJSON KeyConditions where
 instance QC.Arbitrary KeyConditions where  
   arbitrary = KeyConditions <$> QC.arbitrary
 
-data ScanFilter = ScanFilter (Map.Map T.Text Condition)
-                     deriving(Show, Eq)
 
 
 --
@@ -434,6 +460,7 @@ instance QC.Arbitrary KeyType where
   arbitrary = QC.elements [minBound..maxBound]
 
 
+
 --
 -- | ItemCollectionMetrics --tested
 --
@@ -451,6 +478,19 @@ instance QC.Arbitrary ItemCollectionMetrics where
   arbitrary = ItemCollectionMetrics <$> QC.arbitrary <*> QC.arbitrary
 
 
+--
+-- | LastEvaluatedKey
+--
+data LastEvaluatedKey = LastEvaluatedKey{
+  lekLastEvaluatedKey :: Map.Map T.Text Value -- Key ?
+  }deriving(Show, Eq)
+instance ToJSON LastEvaluatedKey where
+  toJSON (LastEvaluatedKey a) = object["LastEvaluatedKey" .= toJSON a]
+instance FromJSON LastEvaluatedKey where
+  parseJSON (Object v) = LastEvaluatedKey <$> v .: "LastEvaluatedKey"
+  parseJSON _          = mzero
+instance QC.Arbitrary LastEvaluatedKey where
+  arbitrary = LastEvaluatedKey <$> QC.arbitrary
 
 --
 -- | Limit  -- tested
@@ -693,6 +733,9 @@ instance QC.Arbitrary ReturnValues where
 --
 -- | ScanFilter  -- tested
 --
+data ScanFilter = ScanFilter (Map.Map T.Text Condition)
+                     deriving(Show, Eq)
+  
 instance ToJSON ScanFilter where
   toJSON(ScanFilter k) = object["ScanFilter" .= k]
 instance FromJSON ScanFilter where
@@ -704,10 +747,34 @@ instance QC.Arbitrary ScanFilter where
 
 data ScanIndexForward = ScanIndexForward Bool
                       deriving(Show, Eq)
-data Select = ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | COUNT | SPECIFIC_ATTRIBUTES
-              deriving(Show, Eq)
+instance ToJSON ScanIndexForward where
+  toJSON (ScanIndexForward b) = object["ScanIndexForward" .= b]
+instance FromJSON ScanIndexForward where
+  parseJSON (Object v) = ScanIndexForward <$>
+                         v .: "ScanIndexForward"
+instance QC.Arbitrary ScanIndexForward where  
+  arbitrary = ScanIndexForward <$> QC.arbitrary
 
-data ScanResult
+data Select = ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | COUNT | SPECIFIC_ATTRIBUTES
+              deriving(Show, Eq, Ord, Bounded, Enum)
+select_t :: Select -> T.Text
+select_t a =
+  case a of
+    ALL_ATTRIBUTES           -> "ALL_ATTRIBUTES"
+    ALL_PROJECTED_ATTRIBUTES -> "ALL_PROJECTED_ATTRIBUTES"
+    COUNT                    -> "COUNT"
+    SPECIFIC_ATTRIBUTES      -> "SPECIFIC_ATTRIBUTES"
+select_m :: Map.Map T.Text Select
+select_m = text_map select_t
+instance ToJSON Select where
+  toJSON = String . select_t
+instance FromJSON Select where
+  parseJSON = json_str_map_p select_m
+instance QC.Arbitrary Select where
+  arbitrary = QC.elements [minBound..maxBound]
+
+
+--data ScanResult
 --
 -- | TableDescription failed because of Double
 --                    succeeded if DateTime = Int
@@ -791,6 +858,21 @@ instance FromJSON Item where
 instance QC.Arbitrary Item where
   arbitrary = Item <$> QC.arbitrary
 
+data Items = Items{
+  items ::[Map.Map T.Text Value]
+  }deriving(Show, Eq)
+instance ToJSON Items where
+  toJSON (Items a) = object["Items" .= a]
+instance FromJSON Items where
+  parseJSON (Object v) = Items <$> v.:"Items"
+instance QC.Arbitrary Items where
+  arbitrary = Items <$> QC.arbitrary
+  shrink    = QC.shrinkNothing
+--a = Items (  [Item $ Map.fromList [("a", ValueS "a")]])
+--b = toJSON a
+--c = encode b
+--d = decode c :: Maybe Items
+
 
 objectToMap::Object -> Map.Map T.Text Value 
 objectToMap = Map.fromList . map (\(x, y) -> (x, fromJust y)) . filter sndNothing . map conv . H.toList
@@ -799,18 +881,6 @@ objectToMap = Map.fromList . map (\(x, y) -> (x, fromJust y)) . filter sndNothin
     conv (a, v) = (a, decode . encode . toJSON $ v)
     sndNothing (a, Nothing) = False
     sndNothing _            = True
-
-
-
---    assoc = H.toList o
-a = Item $ Map.fromList [("t", ValueN 1), ("a",ValueS "S")]
-a'' =  Map.fromList [("t", ValueN 1), ("a",ValueS "S")]
-b = toJSON a
-c = encode b
-d1 = decode c :: Maybe A.Value
-d2 = decode c :: Maybe Object
-d3 = decode c :: Maybe Item
-e  = Map.lookup "t" (iItem a)
 
 
 newtype ExclusiveTableName = ExclusiveTableName{_ExclusiveTableName::TableName}
@@ -867,18 +937,19 @@ instance FromJSON Value where
   parseJSON _          = mzero
 
 instance QC.Arbitrary Value where
-  arbitrary = QC.oneof [liftM ValueB    QC.arbitrary
+  arbitrary = QC.oneof [liftM   ValueB  QC.arbitrary
                         , liftM ValueBS QC.arbitrary
                         , liftM ValueN  QC.arbitrary
                         , liftM ValueNS QC.arbitrary
                         , liftM ValueS  QC.arbitrary
                         , liftM ValueSS QC.arbitrary]
-  shrink(ValueB x)  = [ValueB  x' | x' <- QC.shrink x]
+  shrink(ValueB  x) = [ValueB  x' | x' <- QC.shrink x]
   shrink(ValueBS x) = [ValueBS x' | x' <- QC.shrink x]
-  shrink(ValueN x)  = [ValueN  x' | x' <- QC.shrink x]
+  shrink(ValueN  x) = [ValueN  x' | x' <- QC.shrink x]
   shrink(ValueNS x) = [ValueNS x' | x' <- QC.shrink x]
-  shrink(ValueS x)  = [ValueS  x' | x' <- QC.shrink x]
+  shrink(ValueS  x) = [ValueS  x' | x' <- QC.shrink x]
   shrink(ValueSS x) = [ValueSS x' | x' <- QC.shrink x]  
+
 
 --------------
 --------- Code below are derived from aws-elastictranscoding
@@ -898,8 +969,6 @@ instance ToJSON DdbServiceError where
  
 instance QC.Arbitrary DdbServiceError where
     arbitrary = DDB . T.pack <$> QC.arbitrary
-
-
 
 --
 -- | 'success'
@@ -964,5 +1033,5 @@ two gen = (,) <$> gen <*> gen
 
 ---------
 instance (Ord k, QC.Arbitrary k, QC.Arbitrary v) => QC.Arbitrary (Map.Map k v)      where
-  arbitrary       = Map.fromList <$> QC.arbitrary
-
+  arbitrary = Map.fromList <$> QC.arbitrary
+--  shrink    = Map.fromList <$> (concat [x | x <- QC.shrink])
