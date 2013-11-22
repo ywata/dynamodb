@@ -12,6 +12,7 @@ module Aws.DynamoDB.Json.Types
       ActionType(..)
       , AttributeDefinition(..)
       , AttributeName(..)
+      , Attributes(..)        
       , AttributesToGet(..)
       , DDouble(..)
       , AttributeType(..)
@@ -154,7 +155,25 @@ instance FromJSON AttributeDefinition where
   parseJSON _ = mzero
 instance QC.Arbitrary AttributeDefinition where
   arbitrary = AttributeDefinition <$> QC.arbitrary <*> QC.arbitrary
-  
+
+--
+-- | Attributes
+--
+data Attributes = Attributes{
+  attributes :: [T.Text]
+  }deriving(Show, Eq)
+
+instance ToJSON Attributes where
+  toJSON (Attributes ts) = object[
+    "Attributes" .= ts
+    ]
+instance FromJSON Attributes where
+  parseJSON(Object v) = Attributes <$>
+                        v .:  "Attributes"
+instance QC.Arbitrary Attributes where  
+  arbitrary = Attributes <$> QC.arbitrary
+
+
 --
 -- | AttributesToGet
 --

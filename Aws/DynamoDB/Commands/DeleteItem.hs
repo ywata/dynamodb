@@ -14,11 +14,11 @@ import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Map  as Map
 import qualified Data.Text as T
-
+import qualified Test.QuickCheck as QC
 
 data DeleteItem
     = DeleteItem{
-      diKey                           :: Key                               -- Yes
+      dikey                           :: Key                             -- Yes
       , diTableName                   :: TableName                         -- Yes        
       , diExpected                    :: Maybe Expected                    -- No
       , diReturnConsumedCapacity      :: Maybe ReturnConsumedCapacity      -- No
@@ -30,12 +30,56 @@ data DeleteItem
 instance ToJSON DeleteItem where
   toJSON (DeleteItem a b c d e f) =
     object[
+      "Key"                           .= a
+      , "TableName"                   .= b
+      , "Expected"                    .= c
+      , "ReturnConsumedCapacity"      .= d
+      , "ReturnItemCollectionMetrics" .= e
+      , "ReturnValues"                .= f
       ]
 
-
+instance FromJSON DeleteItem where
+  parseJSON (Object v) = DeleteItem <$>
+                         v .: "Key" <*>
+                         v .: "TableName" <*>
+                         v .:? "Expected" <*>
+                         v .:? "ReturnConsumedCapacity" <*>
+                         v .:? "ReturnItemCollectionMetrics" <*>
+                         v .:? "ReturnValues"
+                         
+instance QC.Arbitrary DeleteItem where
+  arbitrary = DeleteItem <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary
+  
 data DeleteItemResponse
-    = DeleteItemResponse {}
-    deriving (Show,Eq)
+    = DeleteItemResponse {
+      dirArttributes             :: Maybe Attributes
+      , dirConsumedCapacity      :: Maybe ConsumedCapacity
+      , dirItemCollectionMetrics :: Maybe ItemCollectionMetrics
+      }deriving (Show,Eq)
+instance ToJSON DeleteItemResponse where
+  toJSON (DeleteItemResponse a b c) = object[
+    "Attributes"              .= a
+    , "ConsumedCapacity"      .= b
+    , "ItemCollectionMetrics" .= c
+    ]
+instance FromJSON DeleteItemResponse where
+  parseJSON (Object v) = DeleteItemResponse <$>
+                         v .:? "Attributes" <*>
+                         v .:? "ConsumedCapacity" <*>
+                         v .:? "ItemCollectionMetrics"
+    
+instance QC.Arbitrary DeleteItemResponse where  
+  arbitrary = DeleteItemResponse <$>
+              QC.arbitrary <*>
+              QC.arbitrary <*>
+              QC.arbitrary 
+  
 
 
 deleteItem :: Key
@@ -46,7 +90,6 @@ deleteItem :: Key
               -> Maybe ReturnValues
               -> DeleteItem
 deleteItem a b c d e f = DeleteItem a b c d e f
-
 
 
 instance SignQuery DeleteItem where
@@ -61,9 +104,17 @@ instance SignQuery DeleteItem where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data DeleteItemResult = DeleteItemResult{}
+data DeleteItemResult = DeleteItemResult{
+  diAttributes            :: Maybe Attributes
+  , consumedCapacity      :: Maybe ConsumedCapacity
+  , itemCollectionMetrics :: Maybe ItemCollectionMetrics
+  }deriving(Show, Eq)
 instance FromJSON DeleteItemResult where
- parseJSON _ = return DeleteItemResult
+ parseJSON (Object v) = DeleteItemResult <$>
+                        v .: "Attributes" <*>
+                        v .: "ConsumedCapacity" <*>
+                        v .: "ItemCollectionMetrics"
+                        
 
 instance ResponseConsumer DeleteItem DeleteItemResponse where
 
@@ -71,7 +122,7 @@ instance ResponseConsumer DeleteItem DeleteItemResponse where
 
     responseConsumer _ mref = ddbResponseConsumer mref $ \rsp -> cnv <$> jsonConsumer rsp
       where
-        cnv (DeleteItemResult {}) = DeleteItemResponse{}
+        cnv (DeleteItemResult a b c) = DeleteItemResponse a b c
 
 
 instance Transaction DeleteItem DeleteItemResponse

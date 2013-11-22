@@ -1,5 +1,6 @@
 module Aws.DynamoDB.Commands
     ( module Aws.DynamoDB.Commands.CreateTable
+    , module Aws.DynamoDB.Commands.DeleteItem
     , module Aws.DynamoDB.Commands.DeleteTable
     , module Aws.DynamoDB.Commands.DescribeTable
     , module Aws.DynamoDB.Commands.GetItem
@@ -12,6 +13,7 @@ module Aws.DynamoDB.Commands
 
 import           Aws.DynamoDB.Commands.CreateTable
 import           Aws.DynamoDB.Commands.DeleteTable
+import           Aws.DynamoDB.Commands.DeleteItem
 import           Aws.DynamoDB.Commands.DescribeTable
 import           Aws.DynamoDB.Commands.ListTables
 import           Aws.DynamoDB.Commands.UpdateTable
