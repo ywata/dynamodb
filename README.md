@@ -7,12 +7,33 @@ Haskell DynamoDB tools
 The author is currently deveoping this software. Most of the codes are intended to test DynamoDB API described in 
 http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/Welcome.html.
 
+Current status of the implementation
+* Table Manupilacion API
+** CreateTable
+** DeleteTable
+** DescribeTable
+** ListTables
+** UpdateTable
+* Item Manupilation API
+** PutItem
+** GetItem
+** DeleteItem
+** UpdateItem
+* Search
+** Query
+** Scan
+
+Currently not implemented
+* Batch API
+** BatchGetItem
+** BatchWriteItem
+
 # Preparing for DynamoDB local
-As using dynamodb on AWS is not free but AWS released dynamodb test environment called DynamoDB 
+As using dynamodb on AWS is not free but AWS released dynamodb test environment called DynamoDBLocal
 in the following URL.
 http://aws.typepad.com/aws/2013/09/dynamodb-local-for-desktop-development.html
 
-As the released jar files does not provide us any information, the author modifies
+As the released jar files does not provide us any information for debug, the author modifies
 the environment to get some error information.
 
 1. enable log4j.rootLogger = ON in log4j.properties
