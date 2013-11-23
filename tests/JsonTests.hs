@@ -32,8 +32,8 @@ simple_tests :: [SimpleTest]
 simple_tests =
     [
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
-      , ae (mk_aet "TableName"                          :: AETest TableName                  )
-      
+      , ae (mk_aet "TableName"                          :: AETest TableName                  )        
+      {-
       , ae (mk_aet "Attributes"                         :: AETest Attributes                 )      
       , ae (mk_aet "AttributesToGet"                    :: AETest AttributesToGet            )
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
@@ -72,6 +72,7 @@ simple_tests =
       , ae (mk_aet "ReturnValues"                       :: AETest ReturnValues               )
       , ae (mk_aet "ScannedCount"                       :: AETest ScannedCount               )
       , ae (mk_aet "ScanFIlter"                         :: AETest ScanFilter                 )
+      , ae (mk_aet "TableName"                          :: AETest TableName                  )
       , ae (mk_aet "TableStatus"                        :: AETest TableStatus                )                        
       , ae (mk_aet "TableDescription"                   :: AETest TableDescription           ) 
       , ae (mk_aet "Value"                              :: AETest Value                      )
@@ -105,6 +106,7 @@ simple_tests =
 
       , ae (mk_aet "Scan"                             :: AETest Scan                         )
       , ae (mk_aet "ScanResponse"                     :: AETest ScanResponse                 )
+-}
     ]
   where
     ae (AET st) = st

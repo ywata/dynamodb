@@ -187,7 +187,26 @@ instance FromJSON AttributeName where
   parseJSON (String a) = AttributeName <$> return a
   parseJSON _          = mzero
 instance QC.Arbitrary AttributeName where
-  arbitrary = AttributeName <$> QC.arbitrary
+  arbitrary = AttributeName <$> arbitraryAsciiText
+
+
+
+newtype AsciiChar   = AsciiChar {char::Char}
+                      deriving(Show, Eq)
+newtype AsciiString = AsciiString {string::String}
+                      deriving(Show, Eq)
+
+instance QC.Arbitrary AsciiChar where
+  arbitrary = AsciiChar <$> QC.elements (['a'..'z']++[ 'A'..'Z'])
+
+arbitraryList = QC.sized $ \n ->
+    do k <- QC.choose (0, n)
+       sequence [QC.arbitrary | _ <- [1..k]]
+
+
+asciiStringToText :: [AsciiChar] -> T.Text
+asciiStringToText  = T.pack . map char
+arbitraryAsciiText = liftM asciiStringToText arbitraryList
 
 
 --
@@ -890,7 +909,7 @@ instance FromJSON TableName where
   parseJSON (String a) = TableName <$> return a
   parseJSON _          = mzero
 instance QC.Arbitrary TableName where
-  arbitrary = TableName <$> QC.arbitrary
+  arbitrary = TableName <$> arbitraryAsciiText
 
 
 
