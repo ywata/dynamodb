@@ -32,7 +32,9 @@ simple_tests :: [SimpleTest]
 simple_tests =
     [
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
-      , ae (mk_aet "TableName"                          :: AETest TableName                  )        
+    , ae (mk_aet "AttributeName"                        :: AETest AttributeName              )
+    , ae (mk_aet "TableName"                            :: AETest TableName              )            
+    , ae (mk_aet "CreateTable"                          :: AETest CreateTable                  )        
       {-
       , ae (mk_aet "Attributes"                         :: AETest Attributes                 )      
       , ae (mk_aet "AttributesToGet"                    :: AETest AttributesToGet            )

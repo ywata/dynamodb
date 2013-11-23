@@ -150,7 +150,26 @@ relDif a b
 
 
 instance QC.Arbitrary T.Text where
-  arbitrary = T.pack <$> QC.arbitrary
+  arbitrary = arbitraryAsciiText
+
+newtype AsciiChar   = AsciiChar {char::Char}
+                      deriving(Show, Eq)
+--newtype AsciiString = AsciiString {string::String}
+--                      deriving(Show, Eq)
+
+instance QC.Arbitrary AsciiChar where
+  arbitrary = AsciiChar <$> QC.elements (['a'..'z']++[ 'A'..'Z']++['0'..'9'] ++ ['_', '-', '.'])
+
+arbitraryAsciiCharList :: QC.Gen [AsciiChar]
+arbitraryAsciiCharList = QC.sized $ \n ->
+    do k <- QC.choose (0, n)
+       sequence [QC.arbitrary | _ <- [1..k]]
+
+
+asciiStringToText :: [AsciiChar] -> T.Text
+asciiStringToText  = T.pack . map char
+arbitraryAsciiText = liftM asciiStringToText arbitraryAsciiCharList
+
 
 
 --
@@ -187,26 +206,8 @@ instance FromJSON AttributeName where
   parseJSON (String a) = AttributeName <$> return a
   parseJSON _          = mzero
 instance QC.Arbitrary AttributeName where
-  arbitrary = AttributeName <$> arbitraryAsciiText
+  arbitrary = AttributeName <$> QC.arbitrary
 
-
-
-newtype AsciiChar   = AsciiChar {char::Char}
-                      deriving(Show, Eq)
-newtype AsciiString = AsciiString {string::String}
-                      deriving(Show, Eq)
-
-instance QC.Arbitrary AsciiChar where
-  arbitrary = AsciiChar <$> QC.elements (['a'..'z']++[ 'A'..'Z'])
-
-arbitraryList = QC.sized $ \n ->
-    do k <- QC.choose (0, n)
-       sequence [QC.arbitrary | _ <- [1..k]]
-
-
-asciiStringToText :: [AsciiChar] -> T.Text
-asciiStringToText  = T.pack . map char
-arbitraryAsciiText = liftM asciiStringToText arbitraryList
 
 
 --
@@ -901,7 +902,7 @@ instance QC.Arbitrary TableDescription where
 --
 -- | TableName
 --
-newtype TableName = TableName T.Text
+newtype TableName = TableName {text::T.Text}
                     deriving(Show, Eq)
 instance ToJSON TableName where
   toJSON (TableName a) = String a
@@ -909,8 +910,7 @@ instance FromJSON TableName where
   parseJSON (String a) = TableName <$> return a
   parseJSON _          = mzero
 instance QC.Arbitrary TableName where
-  arbitrary = TableName <$> arbitraryAsciiText
-
+  arbitrary = TableName <$> QC.arbitrary
 
 
 --
