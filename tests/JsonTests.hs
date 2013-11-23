@@ -15,12 +15,6 @@ import qualified Test.QuickCheck                as QC
 import qualified Distribution.TestSuite         as TS
 import           Aws.DynamoDB.Commands
 
--- | Detailed-0.9/Cabal-1.14.0 test suite:
-{-
-tests :: [TS.Test] 
-tests = map TS.impure simple_tests
--}
-
 -- | Something to run in ghci:
 test :: IO ()
 test = testBase False
@@ -31,14 +25,15 @@ testBase:: Bool -> IO ()
 testBase b = mapM_ part simple_tests
       where
         part st = 
-             do putStr $ printf "%-35s: " $ nameST st
+             do putStr $ printf "%-40s: " $ nameST st
                 testST st b
-
 
 simple_tests :: [SimpleTest]
 simple_tests =
     [
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
+      , ae (mk_aet "TableName"                          :: AETest TableName                  )
+      
       , ae (mk_aet "Attributes"                         :: AETest Attributes                 )      
       , ae (mk_aet "AttributesToGet"                    :: AETest AttributesToGet            )
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
@@ -110,7 +105,6 @@ simple_tests =
 
       , ae (mk_aet "Scan"                             :: AETest Scan                         )
       , ae (mk_aet "ScanResponse"                     :: AETest ScanResponse                 )
-
     ]
   where
     ae (AET st) = st
@@ -122,21 +116,7 @@ data SimpleTest = ST
     { nameST :: String
     , testST :: Bool -> IO QC.Result
     }
-{-
-instance TS.TestOptions SimpleTest where
-    name           = nameST
-    options        = const []
-    defaultOptions = const $ return $ TS.Options []
-    check          = const $ const $ return []
-
-instance TS.ImpureTestable SimpleTest where
-    runM st _ = cnv_result `fmap` testST st False
--}
-cnv_result :: QC.Result -> TS.Result
-cnv_result qcr =
-        case qcr of
-          QC.Success _ _ _ -> TS.Pass
-          _                -> TS.Fail "Failed"
+  
 
 -- AETest adds a phantom index to SimpleTest as a convenience
 -- to simplify usage of mk_aet, the generator for the
@@ -162,3 +142,29 @@ mk_aet nm0 = tst $ \x -> maybe False (==[x]) $ decode $ encode [x]
         tst p  = AET $ ST nm $ qc p
 
         qc p v = if v then QC.verboseCheckResult p else QC.quickCheckResult p
+
+
+{- test code below resides in ElasticTranscoder test.
+It seems it's old.
+
+-- | Detailed-0.9/Cabal-1.14.0 test suite:
+
+tests :: [TS.Test]
+tests = map TS.impure simple_tests
+
+instance TS.TestOptions SimpleTest where
+    name           = nameST
+    options        = const []
+    defaultOptions = const $ return $ TS.Options []
+    check          = const $ const $ return []
+
+instance TS.ImpureTestable SimpleTest where
+    runM st _ = cnv_result `fmap` testST st False
+
+cnv_result :: QC.Result -> TS.Result
+cnv_result qcr =
+        case qcr of
+          QC.Success _ _ _ -> TS.Pass
+          _                -> TS.Fail "Failed"
+
+-}

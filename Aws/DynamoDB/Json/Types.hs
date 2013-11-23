@@ -74,7 +74,7 @@ import           Data.String
 --import           ToolShed.Test.QuickCheck.Arbitrary.Map
 
 import qualified Data.Map.Lazy                  as Map
-import qualified Data.HashMap.Lazy            as H
+import qualified Data.HashMap.Lazy              as H
 
 import           Data.Attoparsec.Number         (Number(..))
 import           Data.Aeson                     hiding (Value)
@@ -84,8 +84,7 @@ import qualified Data.Text                      as T
 import qualified Test.QuickCheck                as QC
 import           Safe
 
-type AttributeName = T.Text
-type TableName = T.Text
+
 --type Key       = T.Text
 --type KeyValue  = (Key, Value_)
 type NonKeyAttribute = T.Text
@@ -176,6 +175,20 @@ instance FromJSON AttributeDefinition where
   parseJSON _ = mzero
 instance QC.Arbitrary AttributeDefinition where
   arbitrary = AttributeDefinition <$> QC.arbitrary <*> QC.arbitrary
+
+--
+-- | AttributeName
+--
+newtype AttributeName = AttributeName T.Text
+                    deriving(Show, Eq)
+instance ToJSON AttributeName where
+  toJSON (AttributeName a) = String a
+instance FromJSON AttributeName where
+  parseJSON (String a) = AttributeName <$> return a
+  parseJSON _          = mzero
+instance QC.Arbitrary AttributeName where
+  arbitrary = AttributeName <$> QC.arbitrary
+
 
 --
 -- | Attributes
@@ -865,6 +878,22 @@ instance QC.Arbitrary TableDescription where
               QC.arbitrary <*>
               QC.arbitrary <*>
               QC.arbitrary 
+
+--
+-- | TableName
+--
+newtype TableName = TableName T.Text
+                    deriving(Show, Eq)
+instance ToJSON TableName where
+  toJSON (TableName a) = String a
+instance FromJSON TableName where
+  parseJSON (String a) = TableName <$> return a
+  parseJSON _          = mzero
+instance QC.Arbitrary TableName where
+  arbitrary = TableName <$> QC.arbitrary
+
+
+
 --
 -- | TableStatus -- tested
 --
@@ -994,21 +1023,22 @@ instance QC.Arbitrary Value where
 --------------
 --------- Code below are derived from aws-elastictranscoding
 -------------
-newtype DdbServiceError = DDB { _DDB :: T.Text }
-    deriving (Show,IsString,Eq)
+data DdbServiceError = DDB { message :: T.Text, type_::T.Text }
+    deriving (Show,Eq)
 
 instance FromJSON DdbServiceError where
-    parseJSON (Object v) = DDB <$> v .: "message"
+    parseJSON (Object v) = DDB <$> v .: "Message" <*> v .: "__type"
     parseJSON _          = mzero
 
 instance ToJSON DdbServiceError where
-    toJSON (DDB msg) =
+    toJSON (DDB msg_ type_) =
         object
-            [ "message" .= msg
+            [ "Message"   .= msg_
+              , "__type"  .= type_
             ]
  
 instance QC.Arbitrary DdbServiceError where
-    arbitrary = DDB . T.pack <$> QC.arbitrary
+    arbitrary = DDB . T.pack <$> QC.arbitrary <*> QC.arbitrary
 
 --
 -- | 'success'
