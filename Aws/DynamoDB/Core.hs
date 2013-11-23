@@ -236,7 +236,7 @@ ddbSignQuery dq@DdbQuery{..} DdbConfiguration{..} SignatureData{..} =
     lbd = encode <$> ddbqBody
     
 ddbResponseConsumer :: IORef DdbMetadata -> HTTPResponseConsumer a ->
-                                                        HTTPResponseConsumer a
+                       HTTPResponseConsumer a
 ddbResponseConsumer mrf inr rsp = 
  do liftIO $ tellMetadataRef mrf
                 DdbMetadata 
@@ -252,7 +252,6 @@ ddbResponseConsumer mrf inr rsp =
     rqi = mhs "x-amz-request-id"
 
     -- extract header string
-    
     mhs = fmap T.decodeUtf8 . flip lookup (HTTP.responseHeaders rsp)
 
 ddb_error_rc :: HTTPResponseConsumer a
@@ -270,7 +269,7 @@ ddb_error_rc rsp0 =
               Right ese -> 
                 DdbError
                     { ddbStatusCode   = HTTP.responseStatus rsp
-                    , ddbErrorMessage = _DDB ese
+                    , ddbErrorMessage = (message ese) `T.append` " __type " `T.append` (type_ ese)
                     }
 
     oops per msg =
