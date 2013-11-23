@@ -8,25 +8,27 @@ The author is currently deveoping this software. Most of the codes are intended 
 http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/Welcome.html.
 
 Current status of the implementation
-* Table Manupilacion API
-** CreateTable
-** DeleteTable
-** DescribeTable
-** ListTables
-** UpdateTable
-* Item Manupilation API
+
+Table Manupilacion API.
+* CreateTable
+* DeleteTable
+* DescribeTable
+* ListTables
+* UpdateTable
+
+Item Manupilation API.
 ** PutItem
 ** GetItem
 ** DeleteItem
 ** UpdateItem
-* Search
-** Query
-** Scan
 
-Currently not implemented
-* Batch API
-** BatchGetItem
-** BatchWriteItem
+Search API.
+* Query
+* Scan
+
+Batch API is not urrently implemented.
+* BatchGetItem
+* BatchWriteItem
 
 # Preparing for DynamoDB local
 As using dynamodb on AWS is not free but AWS released dynamodb test environment called DynamoDBLocal
