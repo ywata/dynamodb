@@ -1,5 +1,7 @@
 module Aws.DynamoDB.Commands
-    ( module Aws.DynamoDB.Commands.CreateTable
+    ( --module Aws.DynamoDB.Commands.BatchGetItem
+      --module Aws.DynamoDB.Commands.BatchWriteItem
+      module Aws.DynamoDB.Commands.CreateTable
     , module Aws.DynamoDB.Commands.DeleteItem
     , module Aws.DynamoDB.Commands.DeleteTable
     , module Aws.DynamoDB.Commands.DescribeTable
@@ -12,6 +14,8 @@ module Aws.DynamoDB.Commands
     , module Aws.DynamoDB.Commands.UpdateItem
     ) where
 
+--import           Aws.DynamoDB.Commands.BatchGetItem
+--import           Aws.DynamoDB.Commands.BatchWriteItem
 import           Aws.DynamoDB.Commands.CreateTable
 import           Aws.DynamoDB.Commands.DeleteTable
 import           Aws.DynamoDB.Commands.DeleteItem

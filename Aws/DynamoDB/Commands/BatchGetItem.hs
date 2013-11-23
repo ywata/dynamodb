@@ -13,27 +13,41 @@ import           Aws.DynamoDB.Core
 import           Control.Applicative
 import           Data.Aeson
 import qualified Data.Text as T
+import qualified Test.QuickCheck as QC
 
 
 data BatchGetItem
-    = BatchGetItem
-        {
-        }
-    deriving (Show, Eq)
+    = BatchGetItem{
+      
+      } deriving (Show, Eq)
+    
 
 instance ToJSON BatchGetItem where
   toJSON (BatchGetItem) =
     object[
       ]
+--instance FromJSON BatchGetItem where
+--    parseJSON (Object v) = BatchGetItem <$>
+--instance QC.Arbitrary BatchGetItem where
+--    arbitrary = BatchGetItem <$>
+
 
 
 data BatchGetItemResponse
     = BatchGetItemResponse {}
     deriving (Show,Eq)
+instance ToJSON BatchGetItemResponse where
+  toJSON (BatchGetItemResponse ) =
+    object[
+      ]
+--instance FromJSON BatchGetItemResponse where
+--    parseJSON (Object v) = BatchGetItemResponse <$>
+--instance QC.Arbitrary BatchGetItemResponse where
+--    arbitrary = BatchGetItemResponse <$>
 
 
 batchGetItem :: BatchGetItem
-batchGetItem= BatchGetItem
+batchGetItem = BatchGetItem
 
 
 
@@ -49,14 +63,10 @@ instance SignQuery BatchGetItem where
         , ddbqBody    = Just $ toJSON $ a
         }
 
-data NotYet = NotYet
-data BatchGetItemResult = BatchGetItemResult{
-  rgrConsumedCapacity :: Maybe ConsumedCapacity
-  , rgrResponses      :: Maybe NotYet
-  , rgrUnprocessedKeys:: Maybe NotYet
-  }
+data BatchGetItemResult = BatchGetItemResult{} deriving(Show, Eq)
+
 instance FromJSON BatchGetItemResult where
- parseJSON _ = return $ BatchGetItemResult Nothing Nothing Nothing -- NotYet
+ parseJSON _ = return BatchGetItemResult
 
 instance ResponseConsumer BatchGetItem BatchGetItemResponse where
 

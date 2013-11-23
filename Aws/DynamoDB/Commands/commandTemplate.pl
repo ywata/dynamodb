@@ -54,7 +54,7 @@ data $CommandResponse
     = $CommandResponse {}
     deriving (Show,Eq)
 instance ToJSON $CommandResponse where
-  toJSON ($Command) =
+  toJSON ($CommandResponse) =
     object[
       ]
 instance FromJSON $CommandResponse where

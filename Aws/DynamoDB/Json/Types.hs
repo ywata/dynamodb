@@ -49,7 +49,7 @@ module Aws.DynamoDB.Json.Types
       , ProjectionType(..)
       , ProvisionedThroughput(..)
       , ProvisionedThroughputDescription(..)
-
+--      , RequestItems(..)
       , ReturnConsumedCapacity(..)
       , ReturnItemCollectionMetrics(..)
       , ReturnValues(..)

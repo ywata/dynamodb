@@ -11,35 +11,43 @@ module Aws.DynamoDB.Commands.BatchWriteItem
 import           Aws.Core
 import           Aws.DynamoDB.Core
 import           Control.Applicative
-import           Data.Aeson         hiding(Value)
-import qualified Data.Aeson         as A (Value)
+import           Data.Aeson
 import qualified Data.Text as T
+import qualified Test.QuickCheck as QC
 
-data NotYet = NotYet
-  deriving (Show, Eq)
+
 data BatchWriteItem
     = BatchWriteItem
         {
-          bwiRequestItems                  :: NotYet
-          
-          , bwiReturnConsumedCapacity      :: Maybe ReturnConsumedCapacity
-          , bwiReturnItemCollectionMetrics :: Maybe ReturnItemCollectionMetrics
         }
     deriving (Show, Eq)
 
 instance ToJSON BatchWriteItem where
-  toJSON (BatchWriteItem a b c) =
+  toJSON (BatchWriteItem) =
     object[
       ]
+--instance FromJSON BatchWriteItem where
+--    parseJSON (Object v) = BatchWriteItem <$>
+--instance QC.Arbitrary BatchWriteItem where
+--    arbitrary = BatchWriteItem <$>
+
 
 
 data BatchWriteItemResponse
     = BatchWriteItemResponse {}
     deriving (Show,Eq)
+instance ToJSON BatchWriteItemResponse where
+  toJSON (BatchWriteItemResponse) =
+    object[
+      ]
+--instance FromJSON BatchWriteItemResponse where
+--    parseJSON (Object v) = BatchWriteItemResponse <$>
+--instance QC.Arbitrary BatchWriteItemResponse where
+--    arbitrary = BatchWriteItemResponse <$>
 
 
-batchWriteItem :: NotYet -> Maybe ReturnConsumedCapacity -> Maybe ReturnItemCollectionMetrics -> BatchWriteItem
-batchWriteItem a b c = BatchWriteItem a b c
+batchWriteItem :: BatchWriteItem
+batchWriteItem = BatchWriteItem
 
 
 
@@ -55,14 +63,10 @@ instance SignQuery BatchWriteItem where
         , ddbqBody    = Just $ toJSON $ a
         }
 
+data BatchWriteItemResult = BatchWriteItemResult{} deriving(Show, Eq)
 
-data BatchWriteItemResult = BatchWriteItemResult{
-  rwrConsumedCapacity :: Maybe ConsumedCapacity
-  , rwrItemCollectionMetrics :: Maybe ItemCollectionMetrics
-  , rwrUnprocessedItems      :: NotYet
-                                                }
 instance FromJSON BatchWriteItemResult where
- parseJSON _ = return $ BatchWriteItemResult Nothing Nothing  NotYet
+ parseJSON _ = return BatchWriteItemResult
 
 instance ResponseConsumer BatchWriteItem BatchWriteItemResponse where
 
