@@ -17,10 +17,10 @@ Table Manupilacion API.
 * UpdateTable
 
 Item Manupilation API.
-** PutItem
-** GetItem
-** DeleteItem
-** UpdateItem
+* PutItem
+* GetItem
+* DeleteItem
+* UpdateItem
 
 Search API.
 * Query
