@@ -31,6 +31,38 @@ import Test.QuickCheck.Monadic (assert, monadicIO, pick, pre, run)
 my_ddb_cfg :: DdbConfiguration NormalQuery
 my_ddb_cfg  = D.ddbConfiguration HTTP D.ddbEndpointLocal
 
+--main :: IO()
+main = do
+  verboseCheck prop_deleteAllTables
+  verboseCheck prop_createTable
+  verboseCheck prop_deleteAllTables
+  verboseCheck prop_describeTable
+
+prop_deleteAllTables = monadicIO $ do
+  ltrsp <- run $ lt
+  let tbls = tableNames ltrsp
+  case tbls of
+    Just tbls -> mapM (\x -> run $ del (x)) tbls
+  ltrsp <- run $ lt
+  assert (numTables ltrsp == Just 0)
+
+  
+--prop_createTable :: Property
+prop_createTable = monadicIO $ do
+  ltrsp <- run $ lt
+  let preTbls = numTables ltrsp
+  (tblName :: TableName) <- pick arbitrary
+  pre $ 3 <= T.length (text tblName)  && T.length (text tblName) <= 255
+  rsp <- run $ cre tblName
+  ltrsp <- run $ lt
+  let postTbls = numTables ltrsp
+
+  case (preTbls, postTbls) of
+    (Just pr, Just po) -> assert (pr + 1 == po)
+    otherwise          -> assert False
+
+  return ()
+
 cre :: TableName -> IO CreateTableResponse
 cre tbn = do
   cfg <- Aws.baseConfiguration
@@ -43,28 +75,20 @@ cre tbn = do
   return rsp
 
 
---prop_createTable :: Property
-prop_createTable = monadicIO $ do
-  (tblName :: TableName) <- pick arbitrary
-  pre $ 3 <= T.length (text tblName)  && T.length (text tblName) <= 255
-  rsp <- run $ cre tblName
 
-  rsp <- run $ lt
-  let tblNames = tableNames rsp
-
-  run $ putStrLn . show $ length $ fromJust tblNames
-
---main :: IO()
-main = verboseCheck prop_createTable
+numTables :: ListTablesResponse -> Maybe Int
+numTables rsp = tableNames rsp >>= return . length
 
           
 
-del::String -> IO DeleteTableResponse
+del::TableName  -> IO DeleteTableResponse
 del tab = do
   cfg <- Aws.baseConfiguration  
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
-                               D.deleteTable (TableName . T.pack $ tab)
+                               D.deleteTable tab
   return rsp
+
+
 
 lt = do
   cfg <- Aws.baseConfiguration
@@ -78,5 +102,5 @@ dsc tblName = do
   cfg <- Aws.baseConfiguration
   
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
-                               D.describeTable (TableName . T.pack $ tblName)
+                               D.describeTable tblName
   return rsp
