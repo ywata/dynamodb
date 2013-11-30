@@ -98,7 +98,7 @@ cre tbn = do
   rsp <- withManager $ \mgr -> Aws.pureAws cfg my_ddb_cfg mgr $
                                D.createTable
                                [AttributeDefinition "ForumName" AT_S, AttributeDefinition "Index" AT_N ]
-                               [KeySchemaElement "ForumName" HASH, KeySchemaElement "Index" RANGE]
+                               (KeySchema [KeySchemaElement "ForumName" HASH, KeySchemaElement "Index" RANGE])
                                (ProvisionedThroughput 1 1) tbn  Nothing
   return rsp
 
