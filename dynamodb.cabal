@@ -15,7 +15,43 @@ build-type:          Simple
 cabal-version:       >=1.8
 
 library
-  exposed-modules:     Main, Aws.DynamoDB, Aws.DynamoDB.Commands, Aws.DynamoDB.Core, Aws.DynamoDB.Commands.BatchGetItem, Aws.DynamoDB.Commands.BatchWriteItem, Aws.DynamoDB.Commands.CreateTable, Aws.DynamoDB.Commands.DeleteItem, Aws.DynamoDB.Commands.DeleteTable, Aws.DynamoDB.Commands.DescribeTable, Aws.DynamoDB.Commands.GetItem, Aws.DynamoDB.Commands.ListTables, Aws.DynamoDB.Commands.PutItem, Aws.DynamoDB.Commands.Query, Aws.DynamoDB.Commands.Scan, Aws.DynamoDB.Commands.UpdateItem, Aws.DynamoDB.Commands.UpdateTable, Aws.DynamoDB.Json.Types, Aws.DynamoDB.Json.BasicTypes
+  exposed-modules:     
+      Main, Aws.DynamoDB, 
+      Aws.DynamoDB.Commands, 
+      Aws.DynamoDB.Core, 
+      Aws.DynamoDB.Commands.BatchGetItem, 
+      Aws.DynamoDB.Commands.BatchWriteItem, 
+      Aws.DynamoDB.Commands.CreateTable, 
+      Aws.DynamoDB.Commands.DeleteItem, 
+      Aws.DynamoDB.Commands.DeleteTable, 
+      Aws.DynamoDB.Commands.DescribeTable, 
+      Aws.DynamoDB.Commands.GetItem, 
+      Aws.DynamoDB.Commands.ListTables, 
+      Aws.DynamoDB.Commands.PutItem, 
+      Aws.DynamoDB.Commands.Query, 
+      Aws.DynamoDB.Commands.Scan, 
+      Aws.DynamoDB.Commands.UpdateItem, 
+      Aws.DynamoDB.Commands.UpdateTable, 
+      Aws.DynamoDB.Json.Types, 
+      Aws.DynamoDB.Json.BasicTypes
 --, JsonTests, TableTests
   -- other-modules:       
-  build-depends:       base ==4.6.*, aws ==0.8.*, aeson ==0.6.*, bytestring ==0.10.*, text ==0.11.*, containers ==0.5.*, http-conduit ==1.9.*, aws-sign4 ==1.1.*, transformers ==0.3.*, time ==1.4.*, conduit ==1.0.*, http-types ==0.8.*, QuickCheck ==2.6.*, unordered-containers ==0.2.*, attoparsec ==0.10.*, safe ==0.3.*, Cabal ==1.18.*
+  build-depends:       
+      Cabal ==1.18.*,
+      base ==4.6.*, 
+      aws ==0.8.*, 
+      aeson ==0.6.*, 
+      bytestring ==0.10.*, 
+      text ==0.11.*, 
+      containers ==0.5.*, 
+      http-conduit ==1.9.*, 
+      aws-sign4 ==1.1.*, 
+      transformers ==0.3.*, 
+      time ==1.4.*, 
+      conduit ==1.0.*, 
+      http-types ==0.8.*, 
+      QuickCheck ==2.6.*, 
+      unordered-containers ==0.2.*, 
+      attoparsec ==0.10.*, 
+      safe ==0.3.*
+
