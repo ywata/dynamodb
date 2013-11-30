@@ -62,7 +62,7 @@ module Aws.DynamoDB.Json.Types
       , TableName(..)
       , TableStatus(..)
       , Value(..)
-      , arbitraryKeySchema
+--      , arbitraryKeySchema
 --       
     ) where
 
@@ -428,15 +428,17 @@ instance QC.Arbitrary KeyConditions where
 newtype KeySchema = KeySchema [KeySchemaElement]
                     deriving(Show, Eq)
 instance ToJSON KeySchema where
-  toJSON (KeySchema ks) = toJSON ks
+  toJSON (KeySchema ks) = object[
+    "KeySchema" .= ks
+    ]
 instance FromJSON KeySchema where
   parseJSON (Object v) = KeySchema <$>
                          v .: "KeySchema"
 --  parseJSON (Array v) = return $ KeySchema v
-  parseJSON a          = error $ show a
+  parseJSON a          = mzero
 
 instance QC.Arbitrary KeySchema where
-  arbitrary = KeySchema <$> arbitraryKeySchema
+  arbitrary = KeySchema <$> QC.arbitrary
   
 
 --
@@ -456,12 +458,12 @@ instance FromJSON KeySchemaElement where
     v .: "AttributeName" <*>
     v .: "KeyType"
 instance QC.Arbitrary KeySchemaElement where
-  arbitrary = do
-    a <- QC.arbitrary
-    arbitraryKeySchemaElement a
---  arbitrary = KeySchemaElement <$>
---              QC.arbitrary <*>
---              QC.arbitrary
+--  arbitrary = do
+--    a <- QC.arbitrary
+--    arbitraryKeySchemaElement a
+  arbitrary = KeySchemaElement <$>
+              QC.arbitrary <*>
+              QC.arbitrary
 
 
 --

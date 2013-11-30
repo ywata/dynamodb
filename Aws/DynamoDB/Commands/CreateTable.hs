@@ -46,11 +46,11 @@ instance FromJSON CreateTable where
 instance QC.Arbitrary CreateTable where
   arbitrary = CreateTable <$>
               QC.arbitrary  <*>
-              (KeySchema <$> arbitraryKeySchema) <*>
---              QC.arbitrary  <*>
               QC.arbitrary  <*>
               QC.arbitrary  <*>
-              QC.arbitrary 
+              QC.arbitrary  <*>
+              QC.arbitrary
+
 
 
 data CreateTableResult = CreateTableResult{
