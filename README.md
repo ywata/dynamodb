@@ -42,3 +42,4 @@ the environment to get some error information.
 2. add log4j.xml
 
 This will help to understand the behaviour of DynamoDBLocal.
+

@@ -4,6 +4,8 @@ module Main where
 
 import Aws
 import Aws.DynamoDB
+
+
 import qualified Data.ByteString.Lazy as LBS
 
 import qualified Data.Text                      as T
@@ -15,7 +17,11 @@ import Network.HTTP.Conduit
 import           Data.Aeson
 import           Data.Aeson.Types
 
+
+
 my_ddb_cfg :: DdbConfiguration NormalQuery
 my_ddb_cfg  = D.ddbConfiguration HTTP D.ddbEndpointLocal
+
+
 
 

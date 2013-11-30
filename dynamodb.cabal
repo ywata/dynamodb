@@ -12,13 +12,10 @@ maintainer:          ywataywatay@gmail.com
 -- copyright:           
 -- category:            
 build-type:          Simple
--- extra-source-files:  
-cabal-version:       >=1.10
+cabal-version:       >=1.8
 
-executable dynamodb
-  main-is: Main.hs
+library
+  exposed-modules:     Main, Aws.DynamoDB, Aws.DynamoDB.Commands, Aws.DynamoDB.Core, Aws.DynamoDB.Commands.BatchGetItem, Aws.DynamoDB.Commands.BatchWriteItem, Aws.DynamoDB.Commands.CreateTable, Aws.DynamoDB.Commands.DeleteItem, Aws.DynamoDB.Commands.DeleteTable, Aws.DynamoDB.Commands.DescribeTable, Aws.DynamoDB.Commands.GetItem, Aws.DynamoDB.Commands.ListTables, Aws.DynamoDB.Commands.PutItem, Aws.DynamoDB.Commands.Query, Aws.DynamoDB.Commands.Scan, Aws.DynamoDB.Commands.UpdateItem, Aws.DynamoDB.Commands.UpdateTable, Aws.DynamoDB.Json.Types
+--, JsonTests, TableTests
   -- other-modules:       
-  other-extensions:    OverloadedStrings, NoMonomorphismRestriction, GeneralizedNewtypeDeriving, RecordWildCards, FlexibleInstances, DeriveDataTypeable, TypeFamilies, MultiParamTypeClasses
-  build-depends:       base >=4.6 && <4.7, aws >=0.8 && <0.9, http-conduit >=1.9 && <1.10, aws-sign4 >=1.0 && <1.1, transformers >=0.3 && <0.4, aeson >=0.6 && <0.7, time >=1.4 && <1.5, text >=0.11 && <0.12, conduit >=1.0 && <1.1, bytestring >=0.10 && <0.11, http-types >=0.8 && <0.9, regex-compat >=0.95 && <0.96, containers >=0.5 && <0.6, QuickCheck >=2.6 && <2.7, safe >=0.3 && <0.4
-  -- hs-source-dirs:      
-  default-language:    Haskell2010
+  build-depends:       base ==4.6.*, aws ==0.8.*, bytestring ==0.10.*, text ==0.11.*, containers ==0.5.*, http-conduit ==1.9.*, aws-sign4 ==1.1.*, transformers ==0.3.*, time ==1.4.*, conduit ==1.0.*, http-types ==0.8.*, QuickCheck ==2.6.*, unordered-containers ==0.2.*, attoparsec ==0.10.*, safe ==0.3.*, Cabal ==1.18.*
