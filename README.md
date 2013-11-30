@@ -38,8 +38,14 @@ http://aws.typepad.com/aws/2013/09/dynamodb-local-for-desktop-development.html
 As the released jar files does not provide us any information for debug, the author modifies
 the environment to get some error information.
 
-1. enable log4j.rootLogger = ON in log4j.properties
-2. add log4j.xml
+* enable log4j.rootLogger = ON in log4j.properties
+* add log4j.xml
 
 This will help to understand the behaviour of DynamoDBLocal.
+
+The author created a script to downlod and patch the above changes.
+Go to script directory and run setupDynamoDBLocal.sh in the directory will
+prepare dynamodb local.
+
+
 
