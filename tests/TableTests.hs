@@ -33,10 +33,18 @@ my_ddb_cfg  = D.ddbConfiguration HTTP D.ddbEndpointLocal
 
 --main :: IO()
 main = do
-  verboseCheck prop_deleteAllTables
-  verboseCheck prop_createTable
-  verboseCheck prop_deleteAllTables
-  verboseCheck prop_describeTable
+  deleteTables
+--  verboseCheck prop_createTable
+--  deleteTables
+  verboseCheck prop_createRandomTable
+  return ()
+--  verboseCheck prop_describeTable
+
+deleteTables = do
+  ltrsp <- lt
+  let tbls = tableNames ltrsp
+  case tbls of
+    Just tbs -> mapM (\x -> del x) tbs
 
 prop_deleteAllTables = monadicIO $ do
   ltrsp <- run $ lt
@@ -46,7 +54,27 @@ prop_deleteAllTables = monadicIO $ do
   ltrsp <- run $ lt
   assert (numTables ltrsp == Just 0)
 
+
+prop_createRandomTable = monadicIO $ do
+  a  <- pick arbitrary
+  keySchema  <- pick arbitrary
+  c  <- pick arbitrary
+  tblName  <- pick arbitrary
+  pre $ 3 <= T.length (text tblName)  && T.length (text tblName) <= 255
+--  pre $ 1 <= length keySchema
+  e  <- pick arbitrary  
   
+  cfg <- run $ Aws.baseConfiguration
+
+  rsp <- run $ createTableWith cfg my_ddb_cfg a keySchema c tblName e
+
+  return rsp
+
+createTableWith  cfg ddbcfg a b c d e = do
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
+                               D.createTable a b c d e
+
+  return rsp
 --prop_createTable :: Property
 prop_createTable = monadicIO $ do
   ltrsp <- run $ lt

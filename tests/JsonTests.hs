@@ -32,11 +32,12 @@ simple_tests :: [SimpleTest]
 simple_tests =
     [
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
-    , ae (mk_aet "AttributeName"                        :: AETest AttributeName              )
-    , ae (mk_aet "TableName"                            :: AETest TableName              )            
-    , ae (mk_aet "CreateTable"                          :: AETest CreateTable                  )        
+--      , ae (mk_aet "KeySchemeElement"                   :: AETest KeySchemaElement           )      
+      , ae (mk_aet "KeySchema"                          :: AETest KeySchema           )      
+--    , ae (mk_aet "ProvisionedThroughput"                :: AETest ProvisionedThroughput      )        
       {-
-      , ae (mk_aet "Attributes"                         :: AETest Attributes                 )      
+      , ae (mk_aet "AttributeName"                        :: AETest AttributeName              )
+      , ae (mk_aet "Attributes"                         :: AETest Attributes                 )
       , ae (mk_aet "AttributesToGet"                    :: AETest AttributesToGet            )
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
       , ae (mk_aet "ActionType"                         :: AETest ActionType                 )

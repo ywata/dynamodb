@@ -35,7 +35,8 @@ module Aws.DynamoDB.Json.Types
       , Key(..)
       , KeyConditions(..)
 --      , KeyValue(..)
-      , KeySchema(..)
+      , KeySchema(..)        
+--      , KeySchema_(..)
       , KeySchemaElement(..)
       , KeyType(..)
       , LastEvaluatedKey(..)
@@ -61,6 +62,7 @@ module Aws.DynamoDB.Json.Types
       , TableName(..)
       , TableStatus(..)
       , Value(..)
+      , arbitraryKeySchema
 --       
     ) where
 
@@ -84,12 +86,13 @@ import qualified Data.Text                      as T
 import qualified Test.QuickCheck                as QC
 import           Safe
 
+import           Aws.DynamoDB.Json.BasicTypes
 
---type Key       = T.Text
+--type Key      = T.Text
 --type KeyValue  = (Key, Value_)
 type NonKeyAttribute = T.Text
 type IndexName = T.Text
-type KeySchema = [KeySchemaElement]
+--type KeySchema = [KeySchemaElement]
 data Assoc b    = Assoc T.Text b
 type ItemCollectionKey = Map.Map T.Text AttributeValue
 
@@ -115,60 +118,6 @@ instance QC.Arbitrary ScannedCount where
   arbitrary = ScannedCount <$> QC.arbitrary
 
 
-newtype  DDouble =  DDouble Double
-                    deriving(Show)
-
-instance ToJSON DDouble where
-  toJSON (DDouble a) = Number (D a)
-instance FromJSON DDouble where
-  parseJSON n@(Number (D d)) = return $ DDouble d
-  parseJSON n@(Number (I d)) = return $ DDouble (fromIntegral d)
-  parseJSON _          = mzero
-instance QC.Arbitrary DDouble where
-  arbitrary = DDouble <$> QC.arbitrary
-
-
-
-instance Eq DDouble where
-  (DDouble a) == (DDouble b) = cmpDouble a b
-
-
-cmpDouble :: RealFloat a => a -> a -> Bool
-cmpDouble a b -- = relDif a b
-  | relDif a b <= epsilon  = True -- This is not a good choice but better than the previous one.
-  | otherwise                  = False
-  where
-    epsilon = (10.0)**(-15.0)
-
-{- http://www.jpcert.or.jp/sc-rules/c-flp35-c.html -}
-relDif :: RealFloat a => a -> a -> a
-relDif a b
-  | m == 0.0  = 0.0
-  | otherwise = (abs (a - b)) / (max (abs a) (abs b))
-  where m = max (abs a) (abs b)
-
-
-
-instance QC.Arbitrary T.Text where
-  arbitrary = arbitraryAsciiText
-
-newtype AsciiChar   = AsciiChar {char::Char}
-                      deriving(Show, Eq)
---newtype AsciiString = AsciiString {string::String}
---                      deriving(Show, Eq)
-
-instance QC.Arbitrary AsciiChar where
-  arbitrary = AsciiChar <$> QC.elements (['a'..'z']++[ 'A'..'Z']++['0'..'9'] ++ ['_', '-', '.'])
-
-arbitraryAsciiCharList :: QC.Gen [AsciiChar]
-arbitraryAsciiCharList = QC.sized $ \n ->
-    do k <- QC.choose (0, n)
-       sequence [QC.arbitrary | _ <- [1..k]]
-
-
-asciiStringToText :: [AsciiChar] -> T.Text
-asciiStringToText  = T.pack . map char
-arbitraryAsciiText = liftM asciiStringToText arbitraryAsciiCharList
 
 
 
@@ -248,9 +197,6 @@ instance QC.Arbitrary AttributesToGet where
 --
 -- | AttributeValue
 --
-
--- AttributeValue contains the type of AttributeType
--- AttributeType deals B, N S only.
 data AttributeValue = AV_B | AV_BS | AV_N | AV_NS | AV_S | AV_SS
                     deriving (Show, Eq, Ord, Bounded,Enum)
 
@@ -476,6 +422,22 @@ instance QC.Arbitrary KeyConditions where
   arbitrary = KeyConditions <$> QC.arbitrary
 
 
+--
+-- | KeySchema_
+--
+newtype KeySchema = KeySchema [KeySchemaElement]
+                    deriving(Show, Eq)
+instance ToJSON KeySchema where
+  toJSON (KeySchema ks) = toJSON ks
+instance FromJSON KeySchema where
+  parseJSON (Object v) = KeySchema <$>
+                         v .: "KeySchema"
+--  parseJSON (Array v) = return $ KeySchema v
+  parseJSON a          = error $ show a
+
+instance QC.Arbitrary KeySchema where
+  arbitrary = KeySchema <$> arbitraryKeySchema
+  
 
 --
 -- | KeySchemaElement -- tested
@@ -494,9 +456,12 @@ instance FromJSON KeySchemaElement where
     v .: "AttributeName" <*>
     v .: "KeyType"
 instance QC.Arbitrary KeySchemaElement where
-  arbitrary = KeySchemaElement <$>
-              QC.arbitrary <*>
-              QC.arbitrary
+  arbitrary = do
+    a <- QC.arbitrary
+    arbitraryKeySchemaElement a
+--  arbitrary = KeySchemaElement <$>
+--              QC.arbitrary <*>
+--              QC.arbitrary
 
 
 --
@@ -604,6 +569,19 @@ instance QC.Arbitrary LocalSecondaryIndex where
               QC.arbitrary <*>
               QC.arbitrary              
 
+--arbitraryKeySchema::QC.Gen KeySchema
+arbitraryKeySchema = QC.sized $ \n ->
+  do
+    fst <- arbitraryKeySchemaElement HASH
+    k <- QC.choose (1, n)
+    (sequence (return fst  : [arbitraryKeySchemaElement RANGE | _ <- [1..(max 3 (k -1))]]))
+     
+arbitraryKeySchemaElement kType = do
+  attribName <- QC.arbitrary
+  return $ KeySchemaElement attribName kType
+
+
+
 --
 -- | LocalSecondaryIndexDescription
 --
@@ -700,9 +678,12 @@ instance FromJSON ProvisionedThroughput where
     v .: "WriteCapacityUnits" 
   parseJSON _ = mzero
 instance QC.Arbitrary ProvisionedThroughput where
-  arbitrary = ProvisionedThroughput <$>
-              QC.arbitrary <*>
-              QC.arbitrary
+  arbitrary = do
+    a <- nonNegativeIntegralGen
+    b <- nonNegativeIntegralGen
+    let QC.NonNegative a' = a
+        QC.NonNegative b' = b
+    return $ ProvisionedThroughput a' b'
 
 --
 -- | ProvisionedThroughputDescription -- failed when DateTIme=Double
@@ -847,7 +828,6 @@ instance QC.Arbitrary Select where
   arbitrary = QC.elements [minBound..maxBound]
 
 
---data ScanResult
 --
 -- | TableDescription failed because of Double
 --                    succeeded if DateTime = Int
@@ -956,12 +936,8 @@ instance FromJSON Items where
 instance QC.Arbitrary Items where
   arbitrary = Items <$> QC.arbitrary
   shrink    = QC.shrinkNothing
---a = Items (  [Item $ Map.fromList [("a", ValueS "a")]])
---b = toJSON a
---c = encode b
---d = decode c :: Maybe Items
 
-
+{-
 objectToMap::Object -> Map.Map T.Text Value 
 objectToMap = Map.fromList . map (\(x, y) -> (x, fromJust y)) . filter sndNothing . map conv . H.toList
   where
@@ -969,8 +945,11 @@ objectToMap = Map.fromList . map (\(x, y) -> (x, fromJust y)) . filter sndNothin
     conv (a, v) = (a, decode . encode . toJSON $ v)
     sndNothing (a, Nothing) = False
     sndNothing _            = True
+-}
 
-
+--
+-- | ExclusiveableName
+--
 newtype ExclusiveTableName = ExclusiveTableName{_ExclusiveTableName::TableName}
                            deriving(Show, Eq)
 instance ToJSON ExclusiveTableName where
@@ -1119,8 +1098,3 @@ nat_pair = two $ QC.sized $ \n -> QC.choose (0, n)
 
 two :: QC.Gen a -> QC.Gen (a,a)
 two gen = (,) <$> gen <*> gen
-
----------
-instance (Ord k, QC.Arbitrary k, QC.Arbitrary v) => QC.Arbitrary (Map.Map k v)      where
-  arbitrary = Map.fromList <$> QC.arbitrary
---  shrink    = Map.fromList <$> (concat [x | x <- QC.shrink])

@@ -18,7 +18,6 @@ import           Data.Aeson
 import qualified Data.Text as T
 
 
-
 data CreateTable
     = CreateTable
         { ctAttributeDefinitions    :: [AttributeDefinition]       -- Yes
@@ -47,7 +46,8 @@ instance FromJSON CreateTable where
 instance QC.Arbitrary CreateTable where
   arbitrary = CreateTable <$>
               QC.arbitrary  <*>
-              QC.arbitrary  <*>
+              (KeySchema <$> arbitraryKeySchema) <*>
+--              QC.arbitrary  <*>
               QC.arbitrary  <*>
               QC.arbitrary  <*>
               QC.arbitrary 
