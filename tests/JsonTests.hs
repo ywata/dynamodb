@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Aws.DynamoDB.Json.Test
+module Main
     ( 
       testAll
     , testAllVerbose
+    , main
     ) where
 
 import           Aws.DynamoDB.Json.Types
@@ -12,8 +13,10 @@ import qualified Data.Map                       as Map
 import           Control.Applicative
 import           Control.Monad
 import qualified Test.QuickCheck                as QC
-import qualified Distribution.TestSuite         as TS
+--import qualified Distribution.TestSuite         as TS
 import           Aws.DynamoDB.Commands
+
+main = testAll
 
 -- | Something to run in ghci:
 test :: IO ()

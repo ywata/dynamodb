@@ -16,7 +16,7 @@ cabal-version:       >=1.8
 
 library
   exposed-modules:     
-      Main, Aws.DynamoDB, 
+      Aws.DynamoDB, 
       Aws.DynamoDB.Commands, 
       Aws.DynamoDB.Core, 
       Aws.DynamoDB.Commands.BatchGetItem, 
@@ -34,8 +34,6 @@ library
       Aws.DynamoDB.Commands.UpdateTable, 
       Aws.DynamoDB.Json.Types, 
       Aws.DynamoDB.Json.BasicTypes
---, JsonTests, TableTests
-  -- other-modules:       
   build-depends:       
       Cabal ==1.18.*,
       base ==4.6.*, 
@@ -55,4 +53,28 @@ library
       attoparsec ==0.10.*, 
       vector == 0.10.*,
       safe ==0.3.*
+
+Executable jsonTest
+  main-is: JsonTests.hs
+  hs-source-dirs: tests
+  build-depends:
+    Cabal ==1.18.*,
+    base ==4.6.*, 
+    aws ==0.8.*, 
+    aeson ==0.6.*, 
+    bytestring ==0.10.*, 
+    text ==0.11.*, 
+    containers ==0.5.*, 
+    http-conduit ==1.9.*, 
+    aws-sign4 ==1.1.*, 
+    transformers ==0.3.*, 
+    time ==1.4.*, 
+    conduit ==1.0.*, 
+    http-types ==0.8.*, 
+    QuickCheck ==2.6.*, 
+    unordered-containers ==0.2.*, 
+    attoparsec ==0.10.*, 
+    vector == 0.10.*,
+    safe ==0.3.*,
+    dynamodb ==0.1.*
 
