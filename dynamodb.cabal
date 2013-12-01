@@ -53,5 +53,6 @@ library
       QuickCheck ==2.6.*, 
       unordered-containers ==0.2.*, 
       attoparsec ==0.10.*, 
+      vector == 0.10.*,
       safe ==0.3.*
 
