@@ -32,7 +32,7 @@ simple_tests :: [SimpleTest]
 simple_tests =
     [
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
-      , ae (mk_aet "AttributeName"                        :: AETest AttributeName              )
+      , ae (mk_aet "AttributeName"                      :: AETest AttributeName              )
       , ae (mk_aet "Attributes"                         :: AETest Attributes                 )
       , ae (mk_aet "AttributesToGet"                    :: AETest AttributesToGet            )
       , ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
@@ -55,7 +55,7 @@ simple_tests =
       , ae (mk_aet "KeyConditions"                      :: AETest KeyConditions              )
       , ae (mk_aet "KeyType"                            :: AETest KeyType                    )        
       , ae (mk_aet "Keys"                               :: AETest Key                        )
-      , ae (mk_aet "KeySchema"                          :: AETest KeySchema           )      
+      , ae (mk_aet "KeySchema"                          :: AETest KeySchema           )
       , ae (mk_aet "KeySchemeElement"                   :: AETest KeySchemaElement           )
       , ae (mk_aet "LastEvaluatedKey"                   :: AETest LastEvaluatedKey           )        
       , ae (mk_aet "Limit"                              :: AETest Limit                      )
@@ -106,7 +106,6 @@ simple_tests =
 
       , ae (mk_aet "Scan"                             :: AETest Scan                         )
       , ae (mk_aet "ScanResponse"                     :: AETest ScanResponse                 )
-
     ]
   where
     ae (AET st) = st

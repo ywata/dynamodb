@@ -7,6 +7,7 @@
 {-# LANGUAGE RecordWildCards            #-} 
 {-# LANGUAGE EmptyDataDecls             #-}
 {-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 module Aws.DynamoDB.Json.Types
     (
       ActionType(..)
@@ -86,6 +87,7 @@ import qualified Data.Text                      as T
 import qualified Test.QuickCheck                as QC
 import           Safe
 
+import qualified Data.Vector                    as V
 import           Aws.DynamoDB.Json.BasicTypes
 
 --type Key      = T.Text
@@ -428,18 +430,17 @@ instance QC.Arbitrary KeyConditions where
 newtype KeySchema = KeySchema [KeySchemaElement]
                     deriving(Show, Eq)
 instance ToJSON KeySchema where
-  toJSON (KeySchema ks) = object[
-    "KeySchema" .= ks
-    ]
+  toJSON (KeySchema ks) = toJSON ks
+
 instance FromJSON KeySchema where
-  parseJSON (Object v) = KeySchema <$>
-                         v .: "KeySchema"
---  parseJSON (Array v) = return $ KeySchema v
-  parseJSON a          = mzero
+  parseJSON (Array v) = do
+    d  <-  mapM parseJSON (V.toList v)
+    return $ KeySchema d
+        
+  parseJSON _          = mzero
 
 instance QC.Arbitrary KeySchema where
   arbitrary = KeySchema <$> QC.arbitrary
-  
 
 --
 -- | KeySchemaElement -- tested

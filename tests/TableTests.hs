@@ -34,9 +34,9 @@ my_ddb_cfg  = D.ddbConfiguration HTTP D.ddbEndpointLocal
 --main :: IO()
 main = do
   deleteTables
---  verboseCheck prop_createTable
+  verboseCheck prop_createTable
 --  deleteTables
-  verboseCheck prop_createRandomTable
+--  verboseCheck prop_createRandomTable
   return ()
 --  verboseCheck prop_describeTable
 

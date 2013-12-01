@@ -2,10 +2,12 @@
 
 curl=`which curl`
 jar=`which jar`
+
 ddb=dynamodb_local_2013-09-12
 ddbtargz=${ddb}.tar.gz
 ddblocal="https://s3-us-west-2.amazonaws.com/dynamodb-local/${ddbtargz}"
 dynamojar=DynamoDBLocal.jar
+--source dynamo.info
 
 if [ ! -x ${curl} ] ; then
     echo "curl not found on this system."
