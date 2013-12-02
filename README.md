@@ -44,11 +44,11 @@ the environment to get some error information.
 This will help to understand the behaviour of DynamoDBLocal.
 
 The author created a script to downlod and patch the above changes.
-Go to script directory and run setupDynamoDBLocal.sh in the directory will
+Go to util directory and run setupDynamoDBLocal.sh in the directory will
 prepare dynamodb local.
 
 Another setup necessary to use DynamoDBLocal is to put dummy aws-keys file on your home directory as .aws-keys 
-A sample dummy aws-keys file is in the script directory.
+A sample dummy aws-keys file is in the util directory.
 
 
 
