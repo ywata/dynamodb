@@ -80,7 +80,7 @@ createTable :: [AttributeDefinition]
                -> KeySchema
                -> ProvisionedThroughput
                -> TableName
-               ->  Maybe [LocalSecondaryIndex]
+               -> Maybe [LocalSecondaryIndex]
                -> CreateTable
 createTable  a b c d e = CreateTable a b c d e
 

@@ -34,9 +34,10 @@ my_ddb_cfg  = D.ddbConfiguration HTTP D.ddbEndpointLocal
 --main :: IO()
 main = do
   deleteTables
-  verboseCheck prop_createTable
---  deleteTables
---  verboseCheck prop_createRandomTable
+  cfg <- Aws.baseConfiguration
+--  quickCheck prop_createTable
+  deleteTables
+  verboseCheck prop_createRandomTable
   return ()
 --  verboseCheck prop_describeTable
 
@@ -56,23 +57,39 @@ prop_deleteAllTables = monadicIO $ do
 
 
 prop_createRandomTable = monadicIO $ do
-  a  <- pick arbitrary
-  keySchema  <- pick arbitrary
-  c  <- pick arbitrary
-  tblName  <- pick arbitrary
+  adefs      <- pick arbitraryAttributeDefinitions
+--  keySchema  <- pick arbitrary
+  let keySchema = convertAdefToKeySchema  adefs
+--  prov       <- pick arbitrary
+  tblName    <- pick arbitrary
+  pre $ 1 <= length adefs
   pre $ 3 <= T.length (text tblName)  && T.length (text tblName) <= 255
 --  pre $ 1 <= length keySchema
-  e  <- pick arbitrary  
+--  lsi        <- pick arbitrary
+  let lsi  = Nothing
+      prov = ProvisionedThroughput 100 100  -- Random ProvisionedThroughput cause too match provisioning
   
   cfg <- run $ Aws.baseConfiguration
+  rsp1 <- run $ createTableWith cfg my_ddb_cfg adefs keySchema prov tblName lsi
+  rsp2 <- run $ deleteTableWith cfg my_ddb_cfg tblName
+  return rsp2
 
-  rsp <- run $ createTableWith cfg my_ddb_cfg a keySchema c tblName e
-
-  return rsp
+convertAdefToKeySchema :: [AttributeDefinition] -> KeySchema
+convertAdefToKeySchema as = KeySchema $ a2k as
+  where
+    a2k []  = []
+    a2k ((AttributeDefinition a b):rs)  = (KeySchemaElement a HASH):a2k' rs
+    a2k' [] = []
+    a2k' ((AttributeDefinition a b):rs) = (KeySchemaElement a RANGE) : a2k' [] --rs
 
 createTableWith  cfg ddbcfg a b c d e = do
   rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
                                D.createTable a b c d e
+  return rsp
+
+deleteTableWith  cfg ddbcfg a = do
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
+                               D.deleteTable a
 
   return rsp
 --prop_createTable :: Property

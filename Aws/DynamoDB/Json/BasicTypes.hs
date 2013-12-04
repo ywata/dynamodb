@@ -74,20 +74,20 @@ newtype AsciiChar   = AsciiChar {char::Char}
 --                      deriving(Show, Eq)
 
 instance QC.Arbitrary AsciiChar where
-  arbitrary = AsciiChar <$> QC.elements (['a'..'z']++[ 'A'..'Z']++['0'..'9'] ++ ['_', '-', '.'])
+  arbitrary = AsciiChar <$> QC.elements (['a'..'z']++[ 'A'..'Z'] ++['0'..'9'] ++ ['_', '-', '.'])
 
 arbitraryAsciiCharList :: QC.Gen [AsciiChar]
 arbitraryAsciiCharList = QC.sized $ \n ->
-    do k <- QC.choose (0, max n maxChars)
+    do k <- QC.choose (1, max n maxChars)
        sequence [QC.arbitrary | _ <- [1..k]]
     where
-      maxChars = 255
+      maxChars = 20 --255
 
 asciiStringToText :: [AsciiChar] -> T.Text
 asciiStringToText  = T.pack . map char
-arbitraryAsciiText = liftM asciiStringToText arbitraryAsciiCharList
 
 positiveIntegralGen :: (QC.Arbitrary a, Integral a) => QC.Gen (QC.Positive a)
+arbitraryAsciiText = liftM asciiStringToText arbitraryAsciiCharList
 positiveIntegralGen = QC.arbitrary
 
 nonNegativeIntegralGen :: (QC.Arbitrary a, Integral a) => QC.Gen (QC.NonNegative a)

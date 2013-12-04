@@ -64,6 +64,7 @@ module Aws.DynamoDB.Json.Types
       , TableStatus(..)
       , Value(..)
 --      , arbitraryKeySchema
+      , arbitraryAttributeDefinitions
 --       
     ) where
 
@@ -440,7 +441,7 @@ instance FromJSON KeySchema where
   parseJSON _          = mzero
 
 instance QC.Arbitrary KeySchema where
-  arbitrary = KeySchema <$> QC.arbitrary
+  arbitrary = KeySchema <$> arbitraryKeySchema
 
 --
 -- | KeySchemaElement -- tested
@@ -572,19 +573,6 @@ instance QC.Arbitrary LocalSecondaryIndex where
               QC.arbitrary <*>
               QC.arbitrary              
 
---arbitraryKeySchema::QC.Gen KeySchema
-arbitraryKeySchema = QC.sized $ \n ->
-  do
-    fst <- arbitraryKeySchemaElement HASH
-    k <- QC.choose (1, n)
-    (sequence (return fst  : [arbitraryKeySchemaElement RANGE | _ <- [1..(max 3 (k -1))]]))
-     
-arbitraryKeySchemaElement kType = do
-  attribName <- QC.arbitrary
-  return $ KeySchemaElement attribName kType
-
-
-
 --
 -- | LocalSecondaryIndexDescription
 --
@@ -682,11 +670,13 @@ instance FromJSON ProvisionedThroughput where
   parseJSON _ = mzero
 instance QC.Arbitrary ProvisionedThroughput where
   arbitrary = do
-    a <- nonNegativeIntegralGen
-    b <- nonNegativeIntegralGen
-    let QC.NonNegative a' = a
-        QC.NonNegative b' = b
-    return $ ProvisionedThroughput a' b'
+    a <- positiveIntegralGen
+    b <- positiveIntegralGen
+    let QC.Positive a' = a
+        QC.Positive b' = b
+        (a'', b'') = (max 10 a', max 10 b')
+    return $ ProvisionedThroughput a'' b''  -- reduce maximum size
+--    return $ ProvisionedThroughput 40000 40000
 
 --
 -- | ProvisionedThroughputDescription -- failed when DateTIme=Double
@@ -1019,6 +1009,27 @@ instance QC.Arbitrary Value where
   shrink(ValueNS x) = [ValueNS x' | x' <- QC.shrink x]
   shrink(ValueS  x) = [ValueS  x' | x' <- QC.shrink x]
   shrink(ValueSS x) = [ValueSS x' | x' <- QC.shrink x]  
+
+------------
+-- ARBITRARY IMPLEMENTATION
+------------
+--arbitraryKeySchema::QC.Gen KeySchema
+arbitraryKeySchema = QC.sized $ \n ->
+  do
+    fst <- arbitraryKeySchemaElement HASH
+    k <- QC.choose (0, n)
+    sequence (return fst  : [arbitraryKeySchemaElement RANGE | _ <- [0.. max 1 k]])
+     
+arbitraryKeySchemaElement kType = do
+  attribName <- QC.arbitrary
+  return $ KeySchemaElement attribName kType
+
+arbitraryAttributeDefinitions :: QC.Gen [AttributeDefinition]
+arbitraryAttributeDefinitions = QC.sized $ \n ->
+  do
+    fst <- QC.arbitrary
+    k <- QC.choose (-1, n)
+    sequence (return fst : [QC.arbitrary | _ <- [0 .. (min (-1) (min 0 k)) ]])
 
 
 --------------
