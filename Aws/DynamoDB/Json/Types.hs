@@ -912,10 +912,15 @@ data Item = Item{
   iItem :: Map.Map T.Text Value -- Key ?
   }deriving(Show, Eq)
 instance ToJSON Item where
+  toJSON (Item a) = toJSON a
+instance FromJSON Item where
+  parseJSON (Object v) = Item <$> (return . objectToMap $ v)
+{-instance ToJSON Item where
   toJSON (Item a) = object["Item" .= toJSON a]
 instance FromJSON Item where
   parseJSON (Object v) = Item <$> v .: "Item"
   parseJSON _          = mzero
+-}
 instance QC.Arbitrary Item where
   arbitrary = Item <$> QC.arbitrary
 
@@ -930,7 +935,7 @@ instance QC.Arbitrary Items where
   arbitrary = Items <$> QC.arbitrary
   shrink    = QC.shrinkNothing
 
-{-
+
 objectToMap::Object -> Map.Map T.Text Value 
 objectToMap = Map.fromList . map (\(x, y) -> (x, fromJust y)) . filter sndNothing . map conv . H.toList
   where
@@ -938,7 +943,7 @@ objectToMap = Map.fromList . map (\(x, y) -> (x, fromJust y)) . filter sndNothin
     conv (a, v) = (a, decode . encode . toJSON $ v)
     sndNothing (a, Nothing) = False
     sndNothing _            = True
--}
+
 
 --
 -- | ExclusiveableName
