@@ -43,14 +43,15 @@ main = do
          Nothing
   rsp <- dsc (TableName "table")
 
-  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("idx", ValueS "-1"), ("val", ValueS "S"), ("d", ValueN "2")]))
+  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("idx", AV_S "-1"), ("val", AV_S "S"), ("d", AV_N "2")]))
          (TableName "table") Nothing Nothing Nothing Nothing 
   rsp <- getItemWith cfg my_ddb_cfg 
-         (Key . Map.fromList $ [("idx", ValueS "-1")]) (TableName "table") (Just ["d","val"]) Nothing Nothing 
+         (Key . Map.fromList $ [("idx", AV_S "-1")]) (TableName "table") (Just ["d","val"]) Nothing Nothing
+
   rsp <- updateItemWith cfg my_ddb_cfg 
-         (Key . Map.fromList $ [("idx", ValueS "-1")])
+         (Key . Map.fromList $ [("idx", AV_S "-1")])
          (TableName "table")
-         (Just $ AttributeValueUpdate (Just DELETE) ( Just AV_S))
+         (Just $ AttributeValueUpdate (Just DELETE) Nothing)
          Nothing Nothing Nothing Nothing
 
   return rsp

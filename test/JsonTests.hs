@@ -79,7 +79,6 @@ simple_tests =
       , ae (mk_aet "TableName"                          :: AETest TableName                  )
       , ae (mk_aet "TableStatus"                        :: AETest TableStatus                )                        
       , ae (mk_aet "TableDescription"                   :: AETest TableDescription           ) 
-      , ae (mk_aet "Value"                              :: AETest Value                      )
 
 
         {-- API Layer JSON data test Tables  --}

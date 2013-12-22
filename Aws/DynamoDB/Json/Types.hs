@@ -62,7 +62,6 @@ module Aws.DynamoDB.Json.Types
       , TableDescription(..)
       , TableName(..)
       , TableStatus(..)
-      , Value(..)
 --      , arbitraryKeySchema
       , arbitraryAttributeDefinitions
       , objectToMap
@@ -396,7 +395,7 @@ instance QC.Arbitrary ComparisonOperator where
   arbitrary = QC.elements [minBound..maxBound]
 
 data ExclusiveStartKey = ExclusiveStartKey{
-  exclusiveStartKey :: Map.Map T.Text Value
+  exclusiveStartKey :: Map.Map T.Text AttributeValue
   } deriving(Show, Eq)
 instance ToJSON ExclusiveStartKey where
   toJSON (ExclusiveStartKey a) = object[
@@ -485,7 +484,7 @@ instance QC.Arbitrary KeySchemaElement where
 --
 -- | Keys -- tested
 --
-data Key  = Key (Map.Map T.Text Value)
+data Key  = Key (Map.Map T.Text AttributeValue)
            deriving (Show, Eq)
 instance  ToJSON Key where
   toJSON (Key a)  = toJSON a
@@ -543,7 +542,7 @@ instance QC.Arbitrary ItemCollectionMetrics where
 -- | LastEvaluatedKey
 --
 data LastEvaluatedKey = LastEvaluatedKey{
-  lekLastEvaluatedKey :: Map.Map T.Text Value -- Key ?
+  lekLastEvaluatedKey :: Map.Map T.Text AttributeValue -- Key ?
   }deriving(Show, Eq)
 instance ToJSON LastEvaluatedKey where
   toJSON (LastEvaluatedKey a) = object["LastEvaluatedKey" .= toJSON a]
@@ -928,7 +927,7 @@ instance QC.Arbitrary TableStatus where
 -- | Item not tested
 --
 data Item = Item{
-  iItem :: Map.Map T.Text Value -- Key ?
+  iItem :: Map.Map T.Text AttributeValue -- Key ?
   }deriving(Show, Eq)
 instance ToJSON Item where
   toJSON (Item a) = toJSON a
@@ -940,7 +939,7 @@ instance QC.Arbitrary Item where
   arbitrary = Item <$> QC.arbitrary
 
 data Items = Items{
-  items ::[Map.Map T.Text Value]
+  items ::[Map.Map T.Text AttributeValue]
   }deriving(Show, Eq)
 instance ToJSON Items where
   toJSON (Items a) = object["Items" .= a]
@@ -951,10 +950,10 @@ instance QC.Arbitrary Items where
   shrink    = QC.shrinkNothing
 
 
-objectToMap::Object -> Map.Map T.Text Value 
+objectToMap::Object -> Map.Map T.Text AttributeValue 
 objectToMap = Map.fromList . map (\(x, y) -> (x, fromJust y)) . filter sndNothing . map conv . H.toList
   where
-    conv::(T.Text, A.Value) -> (T.Text, Maybe Value)
+    conv::(T.Text, A.Value) -> (T.Text, Maybe AttributeValue)
     conv (a, v) = (a, decode . encode . toJSON $ v)
     sndNothing (a, Nothing) = False
     sndNothing _            = True
@@ -987,42 +986,6 @@ data Exists = Exists Bool
 instance ToJSON Exists where
   toJSON (Exists True)  = object["Exists" .= True]
   toJSON (Exists False) = object["Exists" .= False]
-
---
--- | Value -- tested
---
-data Value =
-  ValueB    T.Text    -- Should be ByteString
-  | ValueBS [T.Text]  -- Should be ByteString
-  | ValueN  T.Text
-  | ValueNS [T.Text]
-  | ValueS  T.Text
-  | ValueSS [T.Text]
-    deriving(Show, Eq)
-
-instance ToJSON Value where
-  toJSON (ValueB  a) = object[ "B"  .= String a]
-  toJSON (ValueBS a) = object[ "BS" .= map String a]
-  toJSON (ValueN  a) = object[ "N"  .= String a]
-  toJSON (ValueNS a) = object[ "NS" .= map String a]
-  toJSON (ValueS  a) = object[ "S"  .= String a]
-  toJSON (ValueSS a) = object[ "SS" .= map String a]
-instance FromJSON Value where
-  parseJSON (Object v) = ValueB  <$> v  .: "B"  <|>
-                         ValueBS <$> v  .: "BS" <|>
-                         ValueS  <$> v  .: "S"  <|>
-                         ValueSS <$> v  .: "SS" <|>
-                         ValueN  <$> v  .: "N"  <|>
-                         ValueNS <$> v  .: "NS" 
-  parseJSON _          = mzero
-
-instance QC.Arbitrary Value where
-  arbitrary = QC.oneof [liftM   ValueB  QC.arbitrary
-                        , liftM ValueBS QC.arbitrary
-                        , liftM ValueN  QC.arbitrary
-                        , liftM ValueNS QC.arbitrary
-                        , liftM ValueS  QC.arbitrary
-                        , liftM ValueSS QC.arbitrary]
 
 ------------
 -- ARBITRARY IMPLEMENTATION
