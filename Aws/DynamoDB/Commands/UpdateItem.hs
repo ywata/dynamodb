@@ -59,8 +59,6 @@ instance QC.Arbitrary UpdateItem where
                 QC.arbitrary <*>
                 QC.arbitrary 
 
-
-
 data UpdateItemResponse
     = UpdateItemResponse {
       uiAtributes               :: Maybe AttributeValueUpdate
@@ -88,13 +86,10 @@ instance QC.Arbitrary UpdateItemResponse where
 
 
 --updateItem :: UpdateItem
-updateItem a b c d e f = UpdateItem a b c d e f 
-
-
+updateItem a b c d e f g = UpdateItem a b c d e f g
 
 instance SignQuery UpdateItem where
-
-    type ServiceConfiguration UpdateItem  = DdbConfiguration
+    type ServiceConfiguration UpdateItem = DdbConfiguration
 
     signQuery a@UpdateItem {..} = ddbSignQuery DdbQuery
         { ddbqMethod  = Post

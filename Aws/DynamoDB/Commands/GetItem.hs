@@ -63,7 +63,6 @@ instance FromJSON GetItemResult where
                         v .:? "ConsumedCapacity" <*>
                         v .:? "Item"
 
-
 data GetItemResponse
     = GetItemResponse {
       girConsumedCapacity :: Maybe ConsumedCapacity,
@@ -79,6 +78,7 @@ instance FromJSON GetItemResponse where
  parseJSON (Object v) = GetItemResponse <$>
                         v .:? "ConsumedCapacity" <*>
                         v .:? "Item"
+
 instance QC.Arbitrary GetItemResponse where
   arbitrary = GetItemResponse <$>
               QC.arbitrary <*>

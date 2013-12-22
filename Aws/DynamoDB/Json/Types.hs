@@ -65,6 +65,7 @@ module Aws.DynamoDB.Json.Types
       , Value(..)
 --      , arbitraryKeySchema
       , arbitraryAttributeDefinitions
+      , objectToMap
 --       
     ) where
 
@@ -200,27 +201,42 @@ instance QC.Arbitrary AttributesToGet where
 --
 -- | AttributeValue
 --
-data AttributeValue = AV_B | AV_BS | AV_N | AV_NS | AV_S | AV_SS
-                    deriving (Show, Eq, Ord, Bounded,Enum)
-
-attributeValue_t ::AttributeValue -> T.Text
-attributeValue_t av =
-  case av of
-    AV_B  -> "B"
-    AV_BS -> "BS"
-    AV_N  -> "N"
-    AV_NS -> "NS"
-    AV_S  -> "S"
-    AV_SS -> "SS"
-attributeValue_m :: Map.Map T.Text AttributeValue
-attributeValue_m = text_map attributeValue_t
+-- AttributeValue is misleading name because tag name of AttributeValue is
+-- actually "Value".
+data AttributeValue =
+  AV_B T.Text
+  | AV_BS [T.Text]
+  | AV_N  T.Text
+  | AV_NS [T.Text]
+  | AV_S  T.Text
+  | AV_SS [T.Text]
+  deriving (Show, Eq)
+-- AttributeValue
 instance ToJSON AttributeValue where
-  toJSON = String . attributeValue_t
-instance FromJSON AttributeValue where
-  parseJSON = json_str_map_p attributeValue_m
-instance QC.Arbitrary AttributeValue where
-  arbitrary = QC.elements [minBound..maxBound]
+  toJSON (AV_B  v) = object [ "B"  .= toJSON v]
+  toJSON (AV_BS v) = object [ "BS" .= toJSON v]
+  toJSON (AV_S  v) = object [ "S"  .= toJSON v]
+  toJSON (AV_SS v) = object [ "SS" .= toJSON v]
+  toJSON (AV_N  v) = object [ "N"  .= toJSON v]
+  toJSON (AV_NS v) = object [ "NS" .= toJSON v]
 
+instance FromJSON AttributeValue where
+  parseJSON (Object v) = AV_B  <$> v .: "B" <|>
+                         AV_BS <$> v .: "BS" <|>
+                         AV_S  <$> v .: "S" <|>
+                         AV_SS <$> v .: "SS" <|>
+                         AV_N  <$> v .: "N" <|>
+                         AV_NS <$> v .: "NS" 
+instance QC.Arbitrary AttributeValue where
+  arbitrary = QC.oneof [liftM   AV_B  QC.arbitrary
+                        , liftM AV_BS QC.arbitrary
+                        , liftM AV_N  QC.arbitrary
+                        , liftM AV_NS QC.arbitrary
+                        , liftM AV_S  QC.arbitrary
+                        , liftM AV_SS QC.arbitrary]
+
+
+  
 
 --
 -- | AttributeType
@@ -408,8 +424,6 @@ instance FromJSON ExpectedAttributeValue where
 instance QC.Arbitrary ExpectedAttributeValue where  
   arbitrary = ExpectedAttributeValue <$> QC.arbitrary <*> QC.arbitrary
 
-
-
 --
 -- | KeyConditions  -- tested
 --
@@ -474,9 +488,9 @@ instance QC.Arbitrary KeySchemaElement where
 data Key  = Key (Map.Map T.Text Value)
            deriving (Show, Eq)
 instance  ToJSON Key where
-  toJSON (Key a)  = object["Keys" .= a]
+  toJSON (Key a)  = toJSON a
 instance FromJSON Key where
-  parseJSON (Object v) = Key <$> v .: "Keys"
+  parseJSON (Object v) = Key <$> (return . objectToMap $ v)
   parseJSON _          = mzero
 instance  QC.Arbitrary Key where
   arbitrary = Key <$> QC.arbitrary
@@ -500,8 +514,13 @@ instance FromJSON KeyType where
   parseJSON = json_str_map_p keyType_m
 instance QC.Arbitrary KeyType where
   arbitrary = QC.elements [minBound..maxBound]
-
-
+{-
+data KeysAndAttributes = KeysAndAttributes{
+  keys :: Keys
+  , attributesToGet :: AttributesToGet
+  , consistentRead  :: ConsistentRead
+  } deriving(Show, Eq)
+-}
 
 --
 -- | ItemCollectionMetrics --tested
@@ -915,12 +934,8 @@ instance ToJSON Item where
   toJSON (Item a) = toJSON a
 instance FromJSON Item where
   parseJSON (Object v) = Item <$> (return . objectToMap $ v)
-{-instance ToJSON Item where
-  toJSON (Item a) = object["Item" .= toJSON a]
-instance FromJSON Item where
-  parseJSON (Object v) = Item <$> v .: "Item"
   parseJSON _          = mzero
--}
+
 instance QC.Arbitrary Item where
   arbitrary = Item <$> QC.arbitrary
 
@@ -979,19 +994,19 @@ instance ToJSON Exists where
 data Value =
   ValueB    T.Text    -- Should be ByteString
   | ValueBS [T.Text]  -- Should be ByteString
-  | ValueN  Int
-  | ValueNS [Int]
+  | ValueN  T.Text
+  | ValueNS [T.Text]
   | ValueS  T.Text
   | ValueSS [T.Text]
     deriving(Show, Eq)
 
 instance ToJSON Value where
-  toJSON (ValueB  a) = object[ "B"  .= a]
-  toJSON (ValueBS a) = object[ "BS" .= a]
-  toJSON (ValueN  a) = object[ "N"  .= a]
-  toJSON (ValueNS a) = object[ "NS" .= a]
-  toJSON (ValueS  a) = object[ "S"  .= a]
-  toJSON (ValueSS a) = object[ "SS" .= a]
+  toJSON (ValueB  a) = object[ "B"  .= String a]
+  toJSON (ValueBS a) = object[ "BS" .= map String a]
+  toJSON (ValueN  a) = object[ "N"  .= String a]
+  toJSON (ValueNS a) = object[ "NS" .= map String a]
+  toJSON (ValueS  a) = object[ "S"  .= String a]
+  toJSON (ValueSS a) = object[ "SS" .= map String a]
 instance FromJSON Value where
   parseJSON (Object v) = ValueB  <$> v  .: "B"  <|>
                          ValueBS <$> v  .: "BS" <|>
@@ -1008,12 +1023,6 @@ instance QC.Arbitrary Value where
                         , liftM ValueNS QC.arbitrary
                         , liftM ValueS  QC.arbitrary
                         , liftM ValueSS QC.arbitrary]
-  shrink(ValueB  x) = [ValueB  x' | x' <- QC.shrink x]
-  shrink(ValueBS x) = [ValueBS x' | x' <- QC.shrink x]
-  shrink(ValueN  x) = [ValueN  x' | x' <- QC.shrink x]
-  shrink(ValueNS x) = [ValueNS x' | x' <- QC.shrink x]
-  shrink(ValueS  x) = [ValueS  x' | x' <- QC.shrink x]
-  shrink(ValueSS x) = [ValueSS x' | x' <- QC.shrink x]  
 
 ------------
 -- ARBITRARY IMPLEMENTATION

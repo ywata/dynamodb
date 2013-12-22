@@ -56,7 +56,7 @@ library
 
 Executable jsonTest
   main-is: JsonTests.hs
-  hs-source-dirs: tests
+  hs-source-dirs: test
   build-depends:
     Cabal ==1.18.*,
     base ==4.6.*, 

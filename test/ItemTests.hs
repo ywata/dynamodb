@@ -36,18 +36,37 @@ main = do
   deleteTables
   cfg <- Aws.baseConfiguration
   rsp <- createTableWith cfg my_ddb_cfg
-         [AttributeDefinition "abc" AT_S]
-         (KeySchema [KeySchemaElement "abc" HASH])
+         [AttributeDefinition "idx" AT_S]
+         (KeySchema [KeySchemaElement "idx" HASH])
          (ProvisionedThroughput 1 1)
          (TableName "table")
          Nothing
   rsp <- dsc (TableName "table")
 
-  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("abc", ValueS "1234567890")])) (TableName "table") Nothing Nothing Nothing Nothing
-
-  rsp <- dsc (TableName "table")
+  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("idx", ValueS "-1"), ("val", ValueS "S"), ("d", ValueN "2")]))
+         (TableName "table") Nothing Nothing Nothing Nothing 
+  rsp <- getItemWith cfg my_ddb_cfg 
+         (Key . Map.fromList $ [("idx", ValueS "-1")]) (TableName "table") (Just ["d","val"]) Nothing Nothing 
+  rsp <- updateItemWith cfg my_ddb_cfg 
+         (Key . Map.fromList $ [("idx", ValueS "-1")])
+         (TableName "table")
+         (Just $ AttributeValueUpdate (Just DELETE) ( Just AV_S))
+         Nothing Nothing Nothing Nothing
 
   return rsp
+
+
+updateItemWith cfg ddbcfg a b c d e f g = do
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
+                               D.updateItem a b c d e f g
+  return rsp
+  
+
+getItemWith cfg ddbcfg a b c d e  = do
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
+                               D.getItem a b c d e
+  return rsp
+
 
 putItemWith cfg ddbcfg a b c d e f = do
   rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $

@@ -110,12 +110,11 @@ instance FromJSON PutItemResult where
     v .:? "Attributes"             <*>
     v .:? "ConsumedCapacity"       <*>
     v .:? "ItemCollectionMetrics"    
-
               
 
 instance SignQuery PutItem where
 
-    type ServiceConfiguration PutItem  = DdbConfiguration
+    type ServiceConfiguration PutItem = DdbConfiguration
 
     signQuery pi@PutItem {..} = ddbSignQuery DdbQuery
         { ddbqMethod  = Post
