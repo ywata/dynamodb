@@ -21,7 +21,7 @@ data UpdateItem
         {
           uiKey                       :: Key
           , uiTableName               :: TableName
-          , uiAttributeUpdates        :: Maybe AttributeValueUpdate
+          , uiAttributeValueUpdates   :: Maybe AttributeValueUpdate
           , uiExpected                :: Maybe Expected
           , uiReturnConsumedCapacity  :: Maybe ReturnConsumedCapacity
           , uiReturnCollectionMetrics :: Maybe ReturnItemCollectionMetrics

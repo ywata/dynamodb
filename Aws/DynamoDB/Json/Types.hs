@@ -68,6 +68,9 @@ module Aws.DynamoDB.Json.Types
 --       
     ) where
 
+import Debug.Trace
+import          Prelude hiding (lookup, keys)
+
 import           Data.Maybe
 import           Control.Monad
 import           Control.Applicative
@@ -288,23 +291,32 @@ instance QC.Arbitrary ActionType  where
 --
 -- | AttributeValueUpdate -- tested
 --
-data AttributeValueUpdate = AttributeValueUpdate{
-  action :: Maybe ActionType
-  , value:: Maybe AttributeValue
-  }deriving(Show, Eq)
+data AttributeValueUpdate = AttributeValueUpdate T.Text (Maybe ActionType) (Maybe AttributeValue)
+  deriving(Show, Eq)
 
 instance ToJSON AttributeValueUpdate where
-  toJSON (AttributeValueUpdate a v) =
-    object [
-      "Action" .= a, "Value" .= v
-           ]
+  toJSON (AttributeValueUpdate a b c) = object[a .= object["Action" .= b, "Value" .= c]]
+
+
+a = AttributeValueUpdate "abc" (Just DELETE) (Just (AV_S "___"))
+b = toJSON a
+c = encode b
+d = decode c :: Maybe AttributeValueUpdate
+
 instance FromJSON AttributeValueUpdate where
-  parseJSON (Object v) = AttributeValueUpdate <$>
-                         v .:? "Action"       <*>
-                         v .:? "Value"
+  parseJSON o@(Object v) = r
+    where
+      o1 = keys o >>= take1 >>= flip lookup o
+      ka = keys o >>= take1
+--      o2 = deepValue o ["AttributeUpdates", fromJust ka] -- TODO
+      r = case (ka, o1) of
+        (Just ka', Just (Object v)) -> AttributeValueUpdate <$> pure ka'  <*> v .:? "Action" <*> v .:? "Value"
+        _        -> mzero
 
 instance QC.Arbitrary AttributeValueUpdate where
-  arbitrary = AttributeValueUpdate <$> QC.arbitrary <*> QC.arbitrary
+  arbitrary = AttributeValueUpdate <$> QC.arbitrary <*> QC.arbitrary <*> QC.arbitrary
+
+
 
 --
 -- | ConsumedCapacity -- tested
@@ -950,15 +962,6 @@ instance QC.Arbitrary Items where
   shrink    = QC.shrinkNothing
 
 
-objectToMap::Object -> Map.Map T.Text AttributeValue 
-objectToMap = Map.fromList . map (\(x, y) -> (x, fromJust y)) . filter sndNothing . map conv . H.toList
-  where
-    conv::(T.Text, A.Value) -> (T.Text, Maybe AttributeValue)
-    conv (a, v) = (a, decode . encode . toJSON $ v)
-    sndNothing (a, Nothing) = False
-    sndNothing _            = True
-
-
 --
 -- | ExclusiveableName
 --
@@ -1007,6 +1010,46 @@ arbitraryAttributeDefinitions = QC.sized $ \n ->
     fst <- QC.arbitrary
     k <- QC.choose (-1, n)
     sequence (return fst : [QC.arbitrary | _ <- [0 .. (min (-1) (min 0 k)) ]])
+
+
+--------------
+objectToMap::(FromJSON a) => Object -> Map.Map T.Text a
+objectToMap = Map.fromList . parseObject 
+
+parseObject :: FromJSON a => Object -> [(T.Text, a)]
+parseObject =  map (\(x, y) -> (x, fromJust y)) . filter sndNothing . map conv . H.toList
+  where
+    conv::(FromJSON a) => (T.Text, A.Value) -> (T.Text, Maybe a)
+    conv (a, v) = (a, decode . encode . toJSON $ v)
+    sndNothing (a, Nothing) = False
+    sndNothing _            = True
+
+
+parseObjectByName :: (FromJSON a) => A.Value -> T.Text -> A.Parser (Maybe a)
+parseObjectByName o t = case o of
+  (Object v) -> v .:? t
+  _          -> mzero
+
+
+lookup :: T.Text -> A.Value -> Maybe A.Value
+lookup k (Object v) = H.lookup k v
+lookup k x          = error $ show x ++ "\n" ++ show k
+
+keys :: A.Value -> Maybe [T.Text]
+keys (Object v) = Just . H.keys $ v
+keys _          = Nothing
+
+take1 :: [a] -> Maybe a
+take1 [] = Nothing
+take1 (x:xs) = Just x
+
+deepValue :: A.Value -> [T.Text] -> Maybe A.Value
+deepValue a ts = deepObj a ts Nothing
+  where
+    deepObj _ [] r   = r
+    deepObj v (x:xs) r = do
+      o' <- lookup x v
+      deepObj o' xs (Just o')
 
 
 --------------

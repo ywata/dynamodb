@@ -36,22 +36,21 @@ main = do
   deleteTables
   cfg <- Aws.baseConfiguration
   rsp <- createTableWith cfg my_ddb_cfg
-         [AttributeDefinition "idx" AT_S]
-         (KeySchema [KeySchemaElement "idx" HASH])
+         [AttributeDefinition "idx" AT_S, AttributeDefinition "a" AT_N]
+         (KeySchema [KeySchemaElement "idx" HASH, KeySchemaElement "a" RANGE])
          (ProvisionedThroughput 1 1)
          (TableName "table")
          Nothing
   rsp <- dsc (TableName "table")
 
-  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("idx", AV_S "-1"), ("val", AV_S "S"), ("d", AV_N "2")]))
+  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("idx", AV_S "idx1"), ("a", AV_N "100"), ("b", AV_S "b"), ("c",AV_S "c")]))
          (TableName "table") Nothing Nothing Nothing Nothing 
   rsp <- getItemWith cfg my_ddb_cfg 
-         (Key . Map.fromList $ [("idx", AV_S "-1")]) (TableName "table") (Just ["d","val"]) Nothing Nothing
-
+         (Key . Map.fromList $ [("idx", AV_S "idx1"), ("a", AV_N "100")]) (TableName "table") (Just ["a","b"]) Nothing Nothing
   rsp <- updateItemWith cfg my_ddb_cfg 
-         (Key . Map.fromList $ [("idx", AV_S "-1")])
+         (Key . Map.fromList $ [("idx", AV_S "i"),("a", AV_N "100")])
          (TableName "table")
-         (Just $ AttributeValueUpdate (Just DELETE) Nothing)
+         (Just ( AttributeValueUpdate  "b" (Just DELETE) Nothing))
          Nothing Nothing Nothing Nothing
 
   return rsp

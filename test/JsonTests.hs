@@ -34,6 +34,9 @@ testBase b = mapM_ part simple_tests
 simple_tests :: [SimpleTest]
 simple_tests =
     [
+--      ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
+--      , ae (mk_aet "ActionType"                         :: AETest ActionType                 )      
+
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
       , ae (mk_aet "Item"                               :: AETest Item             )
       , ae (mk_aet "AttributeName"                      :: AETest AttributeName              )
