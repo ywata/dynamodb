@@ -264,14 +264,13 @@ ddb_error_rc rsp0 =
               Left per -> 
                 DdbError
                     { ddbStatusCode   = HTTP.responseStatus rsp
-                    , ddbErrorMessage = oops per msg
+                    , ddbErrorMessage = oops per msg `T.append` (T.pack . LC.unpack $  HTTP.responseBody rsp) `T.append` "***"
                     }
               Right ese -> 
                 DdbError
                     { ddbStatusCode   = HTTP.responseStatus rsp
                     , ddbErrorMessage = (message ese) `T.append` " __type " `T.append` (type_ ese)
                     }
-
     oops per msg =
                 T.pack $ printf "JSON parse error (%s): %s" per $ LC.unpack msg
 
@@ -283,7 +282,8 @@ jsonConsumer rsp0 =
     oops rsp dgc = 
         DdbError
             { ddbStatusCode   = HTTP.responseStatus rsp
-            , ddbErrorMessage = "Failed to parse JSON response: " `T.append` T.pack dgc
+            , ddbErrorMessage = "Failed to parse JSON response: " `T.append` T.pack dgc 
+                                `T.append` (T.pack . LC.unpack $  HTTP.responseBody rsp)
             }
 
 

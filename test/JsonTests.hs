@@ -31,12 +31,13 @@ testBase b = mapM_ part simple_tests
              do putStr $ printf "%-40s: " $ nameST st
                 testST st b
 
+
 simple_tests :: [SimpleTest]
 simple_tests =
     [
---      ae (mk_aet "AttributeValueUpdate"               :: AETest AttributeValueUpdate       )
---      , ae (mk_aet "ActionType"                         :: AETest ActionType                 )      
-
+--      ae (mk_aet "AttributeValueUpdate"               :: AETest Attributes       )
+     ae (mk_aet "UpdateItemResponse"                 :: AETest UpdateItemResponse         )      
+{-
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
       , ae (mk_aet "Item"                               :: AETest Item             )
       , ae (mk_aet "AttributeName"                      :: AETest AttributeName              )
@@ -112,6 +113,7 @@ simple_tests =
 
       , ae (mk_aet "Scan"                             :: AETest Scan                         )
       , ae (mk_aet "ScanResponse"                     :: AETest ScanResponse                 )
+-}
     ]
   where
     ae (AET st) = st

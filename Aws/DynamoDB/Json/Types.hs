@@ -163,22 +163,54 @@ instance FromJSON AttributeName where
 instance QC.Arbitrary AttributeName where
   arbitrary = AttributeName <$> QC.arbitrary
 
+--a = "{\"Attributes\":{\"idx\":{\"S\":\"idx1\"},\"b\":{\"S\":\"103\"},\"a\":{\"N\":\"103\"}}}"
+--a = Attributes (Map.fromList [("Attributes", AV_N "100")])
+--b = toJSON a
+-- c = "{\"Attributes\":{\"idx\":{\"S\":\"idx1\"},\"b\":{\"S\":\"103\"},\"a\":{\"N\":\"103\"}}}"
+--c = "{\"Attributes\":{\"idx\":{\"S\":\"idx1\"},\"b\":{\"S\":\"103\"},\"a\":{\"N\":\"103\"}}}"
+--c = "{\"Attributes\":{\"idx\":{\"S\":\"idx1\"},\"b\":{\"S\":\"103\"},\"a\":{\"N\":\"103\"}}}"
+--d = eitherDecode c :: Either String Attributes
+
+data UpdateItemResult = UpdateItemResult{
+  attribute              :: Maybe Attributes
+  , consumedCapacity      :: Maybe ConsumedCapacity
+  , itemCollectionMetrics :: Maybe ItemCollectionMetrics
+  } deriving(Show, Eq)
+
+instance ToJSON UpdateItemResult where
+  toJSON (UpdateItemResult a b c) = object[
+    "Attributes" .= a
+    ]
+
+
+instance FromJSON UpdateItemResult where
+ parseJSON (Object v) =  UpdateItemResult <$>
+                         v .:? "Attributes" <*>
+                         v .:? "ConsumedCapacity" <*>
+                         v .:? "ItemCollectionMetrics"
+
+
+a = UpdateItemResult {attribute = Just (Attributes {attributes = Map.fromList [("VcY_8",AV_BS []),("lcHY1HAT4UI-",AV_S "M")]}), consumedCapacity = Just (ConsumedCapacity {ccCacacityUnits = Just 0, ccTableName = Just (TableName {text = "MTib4"})}), itemCollectionMetrics = Nothing}
+
+b = toJSON a
+c = encode b
+d = eitherDecode c :: Either String UpdateItemResult
+
 
 
 --
 -- | Attributes
 --
 data Attributes = Attributes{
-  attributes :: [T.Text]
+  attributes :: Map.Map T.Text AttributeValue
   }deriving(Show, Eq)
-
 instance ToJSON Attributes where
-  toJSON (Attributes ts) = object[
-    "Attributes" .= ts
-    ]
+  toJSON (Attributes ts) = toJSON ts
+
 instance FromJSON Attributes where
-  parseJSON(Object v) = Attributes <$>
-                        v .:  "Attributes"
+  parseJSON o@(Object v) = Attributes <$> (return $ decodeValue o)
+
+
 instance QC.Arbitrary Attributes where  
   arbitrary = Attributes <$> QC.arbitrary
 
@@ -298,11 +330,11 @@ instance ToJSON AttributeValueUpdate where
   toJSON (AttributeValueUpdate a b c) = object[a .= object["Action" .= b, "Value" .= c]]
 
 
-a = AttributeValueUpdate "abc" (Just DELETE) (Just (AV_S "___"))
+{-a = AttributeValueUpdate "abc" (Just DELETE) (Just (AV_S "___"))
 b = toJSON a
 c = encode b
 d = decode c :: Maybe AttributeValueUpdate
-
+-}
 instance FromJSON AttributeValueUpdate where
   parseJSON o@(Object v) = r
     where
@@ -1011,8 +1043,20 @@ arbitraryAttributeDefinitions = QC.sized $ \n ->
     k <- QC.choose (-1, n)
     sequence (return fst : [QC.arbitrary | _ <- [0 .. (min (-1) (min 0 k)) ]])
 
-
 --------------
+decodeValue :: FromJSON a => A.Value ->  Map.Map T.Text a
+decodeValue (Object o) = Map.fromList . H.toList
+                       $ H.map unRight
+                       $ H.filter isRight 
+                       $ H.map (eitherDecode . encode) o
+  where
+    isRight(Right _) = True
+    isRight _        = False
+    unRight (Right x) = x
+    
+decodeValue _ = Map.empty
+
+    
 objectToMap::(FromJSON a) => Object -> Map.Map T.Text a
 objectToMap = Map.fromList . parseObject 
 

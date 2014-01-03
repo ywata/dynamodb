@@ -43,15 +43,29 @@ main = do
          Nothing
   rsp <- dsc (TableName "table")
 
-  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("idx", AV_S "idx1"), ("a", AV_N "100"), ("b", AV_S "b"), ("c",AV_S "c")]))
-         (TableName "table") Nothing Nothing Nothing Nothing 
-  rsp <- getItemWith cfg my_ddb_cfg 
-         (Key . Map.fromList $ [("idx", AV_S "idx1"), ("a", AV_N "100")]) (TableName "table") (Just ["a","b"]) Nothing Nothing
+  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("idx", AV_S "idx1"), ("a", AV_N "101"), ("b", AV_S "b101"), ("c",AV_S "c101")]))
+         (TableName "table") Nothing (Just TOTAL) (Just SIZE) (Just RV_NONE)
+  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("idx", AV_S "idx2"), ("a", AV_N "102"), ("b", AV_S "b102"), ("c",AV_S "c102")]))
+         (TableName "table") Nothing  (Just TOTAL) (Just SIZE) (Just ALL_OLD)
+  rsp <- putItemWith cfg my_ddb_cfg  (Item (Map.fromList [("idx", AV_S "idx3"), ("a", AV_N "103"), ("b", AV_S "b103"), ("c",AV_S "c103")]))
+         (TableName "table") Nothing (Just TOTAL) (Just SIZE) Nothing
+  rsp <- updateItemWith cfg my_ddb_cfg 
+         (Key . Map.fromList $ [("idx", AV_S "idx1"),("a", AV_N "103")])
+         (TableName "table")
+         (Just ( AttributeValueUpdate  "b" (Just PUT) (Just $  AV_S "103")))
+         Nothing (Just TOTAL) (Just SIZE) (Just ALL_OLD)
+  rsp <- updateItemWith cfg my_ddb_cfg 
+         (Key . Map.fromList $ [("idx", AV_S "idx1"),("a", AV_N "101")])
+         (TableName "table")
+         (Just ( AttributeValueUpdate  "b" (Just PUT) (Just $  AV_S "103")))
+         Nothing (Just TOTAL) (Just SIZE) (Just ALL_NEW)
+{-
   rsp <- updateItemWith cfg my_ddb_cfg 
          (Key . Map.fromList $ [("idx", AV_S "i"),("a", AV_N "100")])
          (TableName "table")
          (Just ( AttributeValueUpdate  "b" (Just DELETE) Nothing))
          Nothing Nothing Nothing Nothing
+-}
 
   return rsp
 

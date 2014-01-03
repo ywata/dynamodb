@@ -61,10 +61,10 @@ instance QC.Arbitrary UpdateItem where
 
 data UpdateItemResponse
     = UpdateItemResponse {
-      uiAtributes               :: Maybe AttributeValueUpdate
+      uiAtributes               :: Maybe Attributes
       , uiConsumedCapacity      :: Maybe ConsumedCapacity
       , uiItemCollectionMetrics :: Maybe ItemCollectionMetrics
-      } deriving (Show,Eq)
+      } deriving (Show, Eq)
 instance ToJSON UpdateItemResponse where
   toJSON (UpdateItemResponse a b c) =
     object[
@@ -75,14 +75,19 @@ instance ToJSON UpdateItemResponse where
 
 instance FromJSON UpdateItemResponse where
     parseJSON (Object v) = UpdateItemResponse <$>
-                           v .: "Attributes" <*>
-                           v .: "ConsumedCapacity" <*>
-                           v .: "ItemCollectionMetrics"
+                           v .:? "Attributes" <*>
+                           v .:? "ConsumedCapacity" <*>
+                           v .:? "ItemCollectionMetrics"
+
+c = "{\"Attributes\":{\"idx\":{\"S\":\"idx1\"},\"b\":{\"S\":\"103\"},\"a\":{\"N\":\"103\"}}}"
+d = eitherDecode c :: Either String  UpdateItemResponse
+
+                           
 instance QC.Arbitrary UpdateItemResponse where
     arbitrary = UpdateItemResponse <$>
                 QC.arbitrary <*>
                 QC.arbitrary <*>
-                QC.arbitrary 
+                QC.arbitrary
 
 
 --updateItem :: UpdateItem
@@ -100,17 +105,19 @@ instance SignQuery UpdateItem where
         }
 
 data UpdateItemResult = UpdateItemResult{
-  attributes              :: Maybe AttributeValueUpdate
+  attributes'              :: Maybe Attributes
   , consumedCapacity      :: Maybe ConsumedCapacity
   , itemCollectionMetrics :: Maybe ItemCollectionMetrics
   } deriving(Show, Eq)
 
 instance FromJSON UpdateItemResult where
  parseJSON (Object v) =  UpdateItemResult <$>
-                         v .: "Attributes" <*>
-                         v .: "ConsumedCapacity" <*>
-                         v .: "ItemCollectionMetrics"
+                         v .:? "Attributes" <*>
+                         v .:? "ConsumedCapacity" <*>
+                         v .:? "ItemCollectionMetrics"
                          
+
+
 
 instance ResponseConsumer UpdateItem UpdateItemResponse where
 
