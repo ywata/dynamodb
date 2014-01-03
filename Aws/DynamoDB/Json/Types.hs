@@ -64,7 +64,6 @@ module Aws.DynamoDB.Json.Types
       , TableStatus(..)
 --      , arbitraryKeySchema
       , arbitraryAttributeDefinitions
-      , objectToMap
 --       
     ) where
 
@@ -171,31 +170,6 @@ instance QC.Arbitrary AttributeName where
 --c = "{\"Attributes\":{\"idx\":{\"S\":\"idx1\"},\"b\":{\"S\":\"103\"},\"a\":{\"N\":\"103\"}}}"
 --d = eitherDecode c :: Either String Attributes
 
-data UpdateItemResult = UpdateItemResult{
-  attribute              :: Maybe Attributes
-  , consumedCapacity      :: Maybe ConsumedCapacity
-  , itemCollectionMetrics :: Maybe ItemCollectionMetrics
-  } deriving(Show, Eq)
-
-instance ToJSON UpdateItemResult where
-  toJSON (UpdateItemResult a b c) = object[
-    "Attributes" .= a
-    ]
-
-
-instance FromJSON UpdateItemResult where
- parseJSON (Object v) =  UpdateItemResult <$>
-                         v .:? "Attributes" <*>
-                         v .:? "ConsumedCapacity" <*>
-                         v .:? "ItemCollectionMetrics"
-
-
-a = UpdateItemResult {attribute = Just (Attributes {attributes = Map.fromList [("VcY_8",AV_BS []),("lcHY1HAT4UI-",AV_S "M")]}), consumedCapacity = Just (ConsumedCapacity {ccCacacityUnits = Just 0, ccTableName = Just (TableName {text = "MTib4"})}), itemCollectionMetrics = Nothing}
-
-b = toJSON a
-c = encode b
-d = eitherDecode c :: Either String UpdateItemResult
-
 
 
 --
@@ -208,8 +182,7 @@ instance ToJSON Attributes where
   toJSON (Attributes ts) = toJSON ts
 
 instance FromJSON Attributes where
-  parseJSON o@(Object v) = Attributes <$> (return $ decodeValue o)
-
+  parseJSON o@(Object v) = Attributes <$> (pure $ decodeValue o)
 
 instance QC.Arbitrary Attributes where  
   arbitrary = Attributes <$> QC.arbitrary
@@ -533,7 +506,7 @@ data Key  = Key (Map.Map T.Text AttributeValue)
 instance  ToJSON Key where
   toJSON (Key a)  = toJSON a
 instance FromJSON Key where
-  parseJSON (Object v) = Key <$> (return . objectToMap $ v)
+  parseJSON o@(Object v) = Key <$> (pure $ decodeValue o)
   parseJSON _          = mzero
 instance  QC.Arbitrary Key where
   arbitrary = Key <$> QC.arbitrary
@@ -976,7 +949,7 @@ data Item = Item{
 instance ToJSON Item where
   toJSON (Item a) = toJSON a
 instance FromJSON Item where
-  parseJSON (Object v) = Item <$> (return . objectToMap $ v)
+  parseJSON o@(Object v) = Item <$> (pure $ decodeValue o)
   parseJSON _          = mzero
 
 instance QC.Arbitrary Item where
@@ -1054,21 +1027,8 @@ decodeValue (Object o) = Map.fromList . H.toList
     isRight _        = False
     unRight (Right x) = x
     
-decodeValue _ = Map.empty
-
+decodeValue _ = error "decodeValue mismatch."
     
-objectToMap::(FromJSON a) => Object -> Map.Map T.Text a
-objectToMap = Map.fromList . parseObject 
-
-parseObject :: FromJSON a => Object -> [(T.Text, a)]
-parseObject =  map (\(x, y) -> (x, fromJust y)) . filter sndNothing . map conv . H.toList
-  where
-    conv::(FromJSON a) => (T.Text, A.Value) -> (T.Text, Maybe a)
-    conv (a, v) = (a, decode . encode . toJSON $ v)
-    sndNothing (a, Nothing) = False
-    sndNothing _            = True
-
-
 parseObjectByName :: (FromJSON a) => A.Value -> T.Text -> A.Parser (Maybe a)
 parseObjectByName o t = case o of
   (Object v) -> v .:? t

@@ -35,9 +35,6 @@ testBase b = mapM_ part simple_tests
 simple_tests :: [SimpleTest]
 simple_tests =
     [
---      ae (mk_aet "AttributeValueUpdate"               :: AETest Attributes       )
-     ae (mk_aet "UpdateItemResponse"                 :: AETest UpdateItemResponse         )      
-{-
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
       , ae (mk_aet "Item"                               :: AETest Item             )
       , ae (mk_aet "AttributeName"                      :: AETest AttributeName              )
@@ -113,7 +110,6 @@ simple_tests =
 
       , ae (mk_aet "Scan"                             :: AETest Scan                         )
       , ae (mk_aet "ScanResponse"                     :: AETest ScanResponse                 )
--}
     ]
   where
     ae (AET st) = st
