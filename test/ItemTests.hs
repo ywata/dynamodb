@@ -55,7 +55,7 @@ main = do
          (Just ( AttributeValueUpdate  "b" (Just PUT) (Just $  AV_S "b101x")))
          (Just (Expected $ Map.fromList [("b", ExpectedAttributeValue (Just True) (Just $ (AV_S "b101")))]))
          (Just TOTAL) (Just SIZE) (Just ALL_NEW)
-{-         
+
   rsp <- updateItemWith cfg my_ddb_cfg 
          (Key . Map.fromList $ [("idx", AV_S "idx1"),("a", AV_N "103")])
          (TableName "table")
@@ -66,7 +66,14 @@ main = do
          (TableName "table")
          (Just ( AttributeValueUpdate  "b" (Just PUT) (Just $  AV_S "b102x")))
          Nothing (Just TOTAL) (Just SIZE) (Just ALL_NEW)
--}
+
+  rsp <- deleteItemWith cfg my_ddb_cfg
+         (Key . Map.fromList $ [("idx", AV_S "idx2"),("a", AV_N "102")])
+         (TableName "table")
+         (Just (Expected $ Map.fromList [("b", ExpectedAttributeValue (Just True) (Just $ (AV_S "b102x")))]))
+         Nothing Nothing Nothing
+
+--  rsp <- deleteItemWith cfg my_ddb_cfg
 {-
   rsp <- updateItemWith cfg my_ddb_cfg 
          (Key . Map.fromList $ [("idx", AV_S "i"),("a", AV_N "100")])
@@ -94,6 +101,13 @@ putItemWith cfg ddbcfg a b c d e f = do
   rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
                                D.putItem a b c d e f
   return rsp
+
+deleteItemWith cfg ddbcfg a b c d e f = do
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
+                               D.deleteItem a b c d e f
+  return rsp
+
+
 
 createTableWith  cfg ddbcfg a b c d e = do
   rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $

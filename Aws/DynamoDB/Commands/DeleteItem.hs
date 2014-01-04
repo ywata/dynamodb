@@ -111,9 +111,9 @@ data DeleteItemResult = DeleteItemResult{
   }deriving(Show, Eq)
 instance FromJSON DeleteItemResult where
  parseJSON (Object v) = DeleteItemResult <$>
-                        v .: "Attributes" <*>
-                        v .: "ConsumedCapacity" <*>
-                        v .: "ItemCollectionMetrics"
+                        v .:? "Attributes" <*>
+                        v .:? "ConsumedCapacity" <*>
+                        v .:? "ItemCollectionMetrics"
                         
 
 instance ResponseConsumer DeleteItem DeleteItemResponse where

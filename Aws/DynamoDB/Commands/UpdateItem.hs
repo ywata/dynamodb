@@ -41,12 +41,6 @@ instance ToJSON UpdateItem where
       , "ReturnItemCollectionMetrics" .= f
       , "ReturnValues"                .= g
       ]
-a = UpdateItem (Key . Map.fromList $ [("idx", AV_S "idx3"),("a", AV_N "103")])
-         (TableName "table")
-         Nothing
-         (Just (Expected $ Map.fromList [("b", ExpectedAttributeValue (Just False) (Just $ (AV_S "103-")))]))
-         Nothing Nothing Nothing
-b = toJSON a
 
 
 instance FromJSON UpdateItem where
