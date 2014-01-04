@@ -6,6 +6,7 @@ Haskell DynamoDB tools
 # Current status of thie module
 The author is currently deveoping this software. Most of the codes are intended to test DynamoDB API described in 
 http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/Welcome.html.
+The implemenataion is preliminary and the API will be changed.
 
 Current status of the implementation
 
