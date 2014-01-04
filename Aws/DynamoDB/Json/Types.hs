@@ -432,10 +432,10 @@ data ExpectedAttributeValue = ExpectedAttributeValue{
   , eavValue :: Maybe AttributeValue
   }deriving(Show, Eq)
 instance ToJSON ExpectedAttributeValue where
-  toJSON (ExpectedAttributeValue a b) = object["Exist" .= a, "Value" .= b]
+  toJSON (ExpectedAttributeValue a b) = object["Exists" .= a, "Value" .= b]
 instance FromJSON ExpectedAttributeValue where
   parseJSON (Object v) = ExpectedAttributeValue <$>
-                         v .:? "Exist" <*>
+                         v .:? "Exists" <*>
                          v .:? "Value"
 instance QC.Arbitrary ExpectedAttributeValue where  
   arbitrary = ExpectedAttributeValue <$> QC.arbitrary <*> QC.arbitrary
@@ -976,25 +976,31 @@ instance ToJSON ExclusiveTableName where
   toJSON ex = object[ "ExclusiveTableName" .= _ExclusiveTableName ex]
 
 data Expected = Expected{
-  eExpected :: ExpectedAttributeValue
+  eExpected :: Map.Map T.Text ExpectedAttributeValue
+--  eExists   :: Maybe Bool
+--  , eValue :: Maybe AttributeValue
   }deriving(Show, Eq)
 
 instance ToJSON Expected where
-  toJSON (Expected mp) = object[
-    "Expected" .= mp
-    ]
+  toJSON (Expected a) = toJSON a
+
+a = Expected (Map.fromList [("ABC", ExpectedAttributeValue (Just True) (Just $ AV_B "abc"))])
+b = toJSON a
+c = encode b
+d = eitherDecode c :: Either String Expected
+
 instance FromJSON Expected where
-  parseJSON(Object v) = Expected <$>
-                        v .: "Expected"
+  parseJSON o@(Object v) = Expected <$> (pure $ decodeValue o)
+
 instance QC.Arbitrary Expected where
   arbitrary = Expected <$> QC.arbitrary
-
+{-
 data Exists = Exists Bool
               deriving(Show, Eq)
 instance ToJSON Exists where
   toJSON (Exists True)  = object["Exists" .= True]
   toJSON (Exists False) = object["Exists" .= False]
-
+-}
 ------------
 -- ARBITRARY IMPLEMENTATION
 ------------
