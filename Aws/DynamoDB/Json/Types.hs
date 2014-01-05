@@ -116,10 +116,12 @@ instance QC.Arbitrary Count where
 newtype ScannedCount = ScannedCount Integer
                 deriving(Show, Eq)
 instance ToJSON ScannedCount where
-  toJSON (ScannedCount c) = object["ScannedCount" .= c]
+  toJSON (ScannedCount c) = Number $ I c
 instance FromJSON ScannedCount where
 --  parseJSON (Object v) = ScannedCount <$> v .: "ScannedCount"
-  parseJSON (Number (I n)) = return $ ScannedCount n
+  parseJSON (Number (I n)) = ScannedCount <$> pure n
+  parseJSON (String s)     = ScannedCount <$> pure (read (T.unpack s) :: Integer)
+
 
 instance QC.Arbitrary ScannedCount where
   arbitrary = ScannedCount <$> QC.arbitrary
@@ -198,12 +200,16 @@ data AttributesToGet = AttributesToGet{
   }deriving(Show, Eq)
 
 instance ToJSON AttributesToGet where
-  toJSON (AttributesToGet ts) = object[
-    "AttributesToGet" .= ts
-    ]
+  toJSON (AttributesToGet ts) = toJSON ts
+
 instance FromJSON AttributesToGet where
-  parseJSON(Object v) = AttributesToGet <$>
-                        v .:  "AttributesToGet"
+--  parseJSON(Object v) = AttributesToGet <$>
+--                        v .:  "AttributesToGet"
+  parseJSON (Array a) = AttributesToGet <$> (pure $ map unString $ filter (isString) $ V.toList a) -- TODO
+    where
+      isString (String _a) = True
+      isString _           = False
+      unString (String t) = t
 instance QC.Arbitrary AttributesToGet where  
   arbitrary = AttributesToGet <$> QC.arbitrary
 
@@ -368,12 +374,12 @@ data Condition = Condition{
 instance ToJSON Condition where
   toJSON (Condition a b) = object[
     "ComparisonOperator" .= a
-    , "AttributeList"    .= b
+    , "AttributeValueList"    .= b
     ]
 instance FromJSON Condition where
   parseJSON (Object v) = Condition <$>
                          v .: "ComparisonOperator" <*>
-                         v .: "AttributeList"
+                         v .: "AttributeValueList"
   parseJSON _          = mzero                         
 
 instance QC.Arbitrary Condition where
@@ -574,12 +580,12 @@ instance QC.Arbitrary LastEvaluatedKey where
 --
 -- | Limit  -- tested
 --
-newtype Limit = Limit{_Limit::Int}
+newtype Limit = Limit{limit::Integer}
              deriving(Show, Eq)
 instance ToJSON Limit where
-  toJSON a = object["Limit" .= _Limit a]
+  toJSON (Limit a) = Number $ I a --object["Limit" .= _Limit a]
 instance FromJSON Limit where
-  parseJSON (Object v) = Limit <$> v .: "Limit"
+  parseJSON (Number (I n)) = Limit <$> pure n
   parseJSON _ = mzero
 instance QC.Arbitrary Limit where
   arbitrary = Limit <$> QC.arbitrarySizedIntegral
@@ -821,10 +827,9 @@ data ScanFilter = ScanFilter (Map.Map T.Text Condition)
                      deriving(Show, Eq)
   
 instance ToJSON ScanFilter where
-  toJSON(ScanFilter k) = object["ScanFilter" .= k]
+  toJSON(ScanFilter k) = toJSON k
 instance FromJSON ScanFilter where
-  parseJSON (Object v) = ScanFilter <$>
-                         v .: "ScanFilter"
+  parseJSON o@(Object v) = ScanFilter <$> (pure $ decodeValue o)
 instance QC.Arbitrary ScanFilter where  
   arbitrary = ScanFilter <$> QC.arbitrary
 

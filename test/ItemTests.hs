@@ -72,7 +72,7 @@ main = do
          (Key . Map.fromList $ [("idx", AV_S "idx2"),("a", AV_N "102")])
          (TableName "table")
          (Just (Expected $ Map.fromList [("b", ExpectedAttributeValue (Just True) (Just $ (AV_S "b102x")))]))
-         Nothing Nothing Nothing
+         Nothing Nothing Nothing 
 
 --  rsp <- deleteItemWith cfg my_ddb_cfg
 {-
@@ -85,14 +85,14 @@ main = do
 
   rsp <- scanWith cfg my_ddb_cfg
          (TableName "table")
+         (Just $ AttributesToGet ["a"])
          Nothing
-         Nothing
-         Nothing
-         Nothing
-         Nothing
-         Nothing
-         Nothing
-         Nothing
+         (Just $ Limit 5)           
+         (Just TOTAL)
+         (Just . ScanFilter $ Map.fromList [("a", Condition NOT_NULL_ Nothing)]) -- ScanFilter
+         (Just 10) -- Int
+         (Just SPECIFIC_ATTRIBUTES) -- Select
+         (Just 20) -- Int
 
   return rsp
 

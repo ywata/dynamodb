@@ -36,6 +36,8 @@ simple_tests :: [SimpleTest]
 simple_tests =
     [
       ae (mk_aet "AttributeValue"                       :: AETest AttributeValue             )
+
+      , ae (mk_aet "ScannedCount"                       :: AETest ScannedCount               )
       , ae (mk_aet "Item"                               :: AETest Item             )
       , ae (mk_aet "AttributeName"                      :: AETest AttributeName              )
       , ae (mk_aet "Attributes"                         :: AETest Attributes                 )
