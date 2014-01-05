@@ -7,6 +7,7 @@ module Aws.DynamoDB.Json.Test
 import           Aws
 import           Aws.DynamoDB
 import           Aws.DynamoDB.Json.Types
+import           Aws.DynamoDB.Json.TypeHelper
 import           Control.Exception
 import           Control.Monad.IO.Class
 import           Data.Maybe (fromJust)

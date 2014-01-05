@@ -27,7 +27,6 @@ import           Safe
 import qualified Data.Vector                    as V
 import           Aws.DynamoDB.Json.BasicTypes
 
-
 --------------
 decodeValue :: FromJSON a => A.Value ->  Map.Map T.Text a
 decodeValue (Object o) = Map.fromList . H.toList
@@ -148,3 +147,5 @@ nat_pair = two $ QC.sized $ \n -> QC.choose (0, n)
 
 two :: QC.Gen a -> QC.Gen (a,a)
 two gen = (,) <$> gen <*> gen
+
+

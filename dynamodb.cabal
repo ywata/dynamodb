@@ -33,8 +33,10 @@ library
       Aws.DynamoDB.Commands.UpdateItem, 
       Aws.DynamoDB.Commands.UpdateTable, 
       Aws.DynamoDB.Json.Types, 
+      Aws.DynamoDB.Json.TypeHelper, 
       Aws.DynamoDB.Json.BasicTypes
-  build-depends:       
+
+  build-depends:
       Cabal ==1.18.*,
       base ==4.6.*, 
       aws ==0.8.*, 

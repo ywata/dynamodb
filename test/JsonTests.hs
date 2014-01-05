@@ -7,6 +7,7 @@ module Main
     ) where
 
 import           Aws.DynamoDB.Json.Types
+import           Aws.DynamoDB.Json.TypeHelper
 import           Text.Printf
 import           Data.Aeson                     hiding(Value)
 import qualified Data.Map                       as Map
