@@ -35,7 +35,7 @@ instance ToJSON Query where
   toJSON (Query a b c d e f g h i j) =
     object[
       "TableName"                .= a
-      , "AttributeToGet"         .= b
+      , "AttributesToGet"        .= b
       , "ConsistentRead"         .= c
       , "ExclusiveStartKey"      .= d
       , "IndexName"              .= e
@@ -48,7 +48,7 @@ instance ToJSON Query where
 instance FromJSON Query where
   parseJSON (Object v) = Query <$>
                          v .: "TableName" <*>
-                         v .:? "AttributeToGet" <*>
+                         v .:? "AttributesToGet" <*>
                          v .:? "ConsistentRead" <*>
                          v .:? "ExclusiveStartKey" <*>
                          v .:? "IndexName"<*>

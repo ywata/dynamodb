@@ -7,6 +7,7 @@ module Aws.DynamoDB.Json.Test
 import           Aws
 import           Aws.DynamoDB
 import           Aws.DynamoDB.Json.Types
+import           Control.Exception
 import           Control.Monad.IO.Class
 import           Data.Maybe (fromJust)
 import           Text.Printf
@@ -33,7 +34,10 @@ my_ddb_cfg  = D.ddbConfiguration HTTP D.ddbEndpointLocal
 
 
 --main :: IO()
-main = do
+
+--main = tests `catch` \_ -> return ()
+
+tests = do
   deleteTables
   cfg <- Aws.baseConfiguration
   rsp <- createTableWith cfg my_ddb_cfg
@@ -94,6 +98,34 @@ main = do
          (Just SPECIFIC_ATTRIBUTES) -- Select
          (Just 20) -- Int
 
+  rsp <- (queryWith cfg my_ddb_cfg
+         (TableName "table")
+--         (Just $ AttributesToGet ["a"])
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+         Nothing) 
+         
+--         (Just $ Limit 5)           
+--         (Just TOTAL)
+--         (Just . ScanFilter $ Map.fromList [("a", Condition NOT_NULL_ Nothing)]) -- ScanFilter
+--         (Just 10) -- Int
+--         (Just SPECIFIC_ATTRIBUTES) -- Select
+--         (Just 20) -- Int
+         
+  
+
+  return ()
+
+
+queryWith cfg ddbcfg a b c d e f g h i j = do
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
+                               D.query a b c d e f g h i j
   return rsp
 
 
