@@ -40,19 +40,19 @@ instance ToJSON Scan where
       , "ScanFilter"             .= f
       , "Segment"                .= g
       , "Select"                 .= h
-      , "TotalSements"           .= i
+      , "TotalSegments"          .= i
       ]
 instance FromJSON Scan where
   parseJSON (Object v) = Scan <$>
                          v .: "TableName" <*>
-                         v .: "AttributesToGet" <*>
-                         v .: "ExclusiveStartKey" <*>
-                         v .: "Limit" <*>
-                         v .: "ReturnConsumedCapacity" <*>
-                         v .: "ScanFilter" <*>
-                         v .: "Segment" <*>
-                         v .: "Select" <*>
-                         v .: "TotalSements"
+                         v .:? "AttributesToGet" <*>
+                         v .:? "ExclusiveStartKey" <*>
+                         v .:? "Limit" <*>
+                         v .:? "ReturnConsumedCapacity" <*>
+                         v .:? "ScanFilter" <*>
+                         v .:? "Segment" <*>
+                         v .:? "Select" <*>
+                         v .:? "TotalSegments"
                          
 instance QC.Arbitrary Scan where
   arbitrary = Scan <$>
@@ -86,11 +86,11 @@ instance ToJSON ScanResponse where
 
 instance FromJSON ScanResponse where
   parseJSON (Object v) = ScanResponse <$>
-                         v .: "ConsumedCapacity" <*>
-                         v .: "Count" <*>                         
-                         v .: "Items" <*>       
-                         v .: "LastEvaluatedKey" <*>
-                         v .: "ScanResponse"      
+                         v .:? "ConsumedCapacity" <*>
+                         v .:? "Count" <*>                         
+                         v .:? "Items" <*>       
+                         v .:? "LastEvaluatedKey" <*>
+                         v .:? "ScanResponse"      
 
 instance QC.Arbitrary ScanResponse where  
   arbitrary = ScanResponse <$>
@@ -134,12 +134,13 @@ data ScanResult = ScanResult{
   } deriving(Show, Eq)
 instance FromJSON ScanResult where
  parseJSON (Object v) = ScanResult <$>
-                        v .: "ConsumedCapacity" <*>
-                        v .: "Coount" <*>
-                        v .: "Items" <*>
-                        v .: "LastEvaluatedKey" <*>
-                        v .: "ScannedCount" 
-                        
+                        v .:? "ConsumedCapacity" <*>
+                        v .:? "Coount" <*>
+                        v .:? "Items" <*>
+                        v .:? "LastEvaluatedKey" <*>
+                        v .:? "ScannedCount"
+-- parseJSON a         = error $ show a
+
 
 instance ResponseConsumer Scan ScanResponse where
 

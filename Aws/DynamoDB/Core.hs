@@ -283,7 +283,7 @@ jsonConsumer rsp0 =
         DdbError
             { ddbStatusCode   = HTTP.responseStatus rsp
             , ddbErrorMessage = "Failed to parse JSON response: " `T.append` T.pack dgc 
-                                `T.append` (T.pack . LC.unpack $  HTTP.responseBody rsp)
+                                `T.append` (T.pack . LC.unpack $ HTTP.responseBody rsp)
             }
 
 

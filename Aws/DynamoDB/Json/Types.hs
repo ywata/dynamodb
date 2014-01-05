@@ -113,12 +113,14 @@ instance FromJSON Count where
 instance QC.Arbitrary Count where
   arbitrary = Count <$> QC.arbitrary
 
-newtype ScannedCount = ScannedCount Int
+newtype ScannedCount = ScannedCount Integer
                 deriving(Show, Eq)
 instance ToJSON ScannedCount where
   toJSON (ScannedCount c) = object["ScannedCount" .= c]
 instance FromJSON ScannedCount where
-  parseJSON (Object v) = ScannedCount <$> v .: "ScannedCount"
+--  parseJSON (Object v) = ScannedCount <$> v .: "ScannedCount"
+  parseJSON (Number (I n)) = return $ ScannedCount n
+
 instance QC.Arbitrary ScannedCount where
   arbitrary = ScannedCount <$> QC.arbitrary
 
@@ -957,15 +959,18 @@ instance QC.Arbitrary Item where
 
 data Items = Items{
   items ::[Map.Map T.Text AttributeValue]
+--  items ::[Item]
   }deriving(Show, Eq)
 instance ToJSON Items where
   toJSON (Items a) = object["Items" .= a]
 instance FromJSON Items where
   parseJSON (Object v) = Items <$> v.:"Items"
+  parseJSON (Array  a) = Items <$> pure r
+    where
+      r = map decodeValue $ V.toList a
+      
 instance QC.Arbitrary Items where
   arbitrary = Items <$> QC.arbitrary
-  shrink    = QC.shrinkNothing
-
 
 --
 -- | ExclusiveableName

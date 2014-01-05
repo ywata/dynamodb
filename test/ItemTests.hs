@@ -31,6 +31,7 @@ import Test.QuickCheck.Monadic (assert, monadicIO, pick, pre, run)
 my_ddb_cfg :: DdbConfiguration NormalQuery
 my_ddb_cfg  = D.ddbConfiguration HTTP D.ddbEndpointLocal
 
+
 --main :: IO()
 main = do
   deleteTables
@@ -82,8 +83,25 @@ main = do
          Nothing Nothing Nothing Nothing
 -}
 
+  rsp <- scanWith cfg my_ddb_cfg
+         (TableName "table")
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+         Nothing
+
   return rsp
 
+
+scanWith cfg ddbcfg a b c d e f g h i = do
+  rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
+                               D.scan a b c d e f g h i
+  return rsp
+  
 
 updateItemWith cfg ddbcfg a b c d e f g = do
   rsp <- withManager $ \mgr -> Aws.pureAws cfg ddbcfg mgr $
